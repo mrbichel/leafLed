@@ -58,14 +58,15 @@ void testApp::update(){
 		
         if ( m.getAddress() == "/l" ){ // Set a single led
             //ledData[m.getArgAsInt32(0)].set(m.getArgAsFloat(1)*255, m.getArgAsFloat(2)*255, m.getArgAsFloat(3)*255);
+                        
+            ledData.setColor(m.getArgAsInt32(0), 0, ofColor(m.getArgAsFloat(1)*255, m.getArgAsFloat(2)*255, m.getArgAsFloat(3)*255));
             
-            ledData.setColor(m.getArgAsInt32(0), 0, ofColor(m.getArgAsFloat(1), m.getArgAsFloat(2), m.getArgAsFloat(3)));
 
         
         } else if(m.getAddress() == "/lc"){ // Set a complete frame
             
             for(int i=0; i < ledData.getWidth(); i++) {
-                ledData.setColor(i, 0, ofColor(m.getArgAsFloat(i), m.getArgAsFloat(i+1), m.getArgAsFloat(i+2)));
+                ledData.setColor(i, 0, ofColor(m.getArgAsFloat(i)*255, m.getArgAsFloat(i+1)*255, m.getArgAsFloat(i+2)*255));
             }
         
         } else if(m.getAddress() == "/led/all"){ // set all at once
