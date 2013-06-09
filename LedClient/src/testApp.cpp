@@ -28,6 +28,7 @@ void testApp::setup(){
 	led = new ofxLEDsLPD8806(numLED);
     
     ledData.allocate(numLED, 1, GL_RGB);
+    outTexture.allocate(ledData);
     
     /*for(int i = 0; i < numLED; i++) {
         ledData.push_back(ofColor(255));
