@@ -1,6 +1,6 @@
 #include "testApp.h"
 
-const int numClients = 1;
+const int numClients = 2;
 
 
 void testApp::setup(){
@@ -29,7 +29,7 @@ void testApp::setup(){
         //c.dataTexture.allocate(c.width, c.height, GL_RGB);
         //c.dataTexture.clear();
         
-        c.hostname = "localhost";
+        c.hostname = "0.0.0.0";
         c.port = 2838;
         
         c.osc.setup(c.hostname, c.port);

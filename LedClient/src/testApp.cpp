@@ -27,9 +27,11 @@ void testApp::setup(){
     
 	led = new ofxLEDsLPD8806(numLED);
     
-    for(int i = 0; i < numLED; i++) {
+    ledData.allocate(numLED, 1, GL_RGB);
+    
+    /*for(int i = 0; i < numLED; i++) {
         ledData.push_back(ofColor(255));
-    }
+    }*/
     
     
 	ofLogNotice("OSC") << " Set LED length as " << numLED;
@@ -55,16 +57,18 @@ void testApp::update(){
 		receiver.getNextMessage(&m);
 		
         if ( m.getAddress() == "/l" ){ // Set a single led
-            ledData[m.getArgAsInt32(0)].set(m.getArgAsFloat(1)*255, m.getArgAsFloat(2)*255, m.getArgAsFloat(3)*255);
+            //ledData[m.getArgAsInt32(0)].set(m.getArgAsFloat(1)*255, m.getArgAsFloat(2)*255, m.getArgAsFloat(3)*255);
+            
+            ledData.setColor(m.getArgAsInt32(0), 0, ofColor(m.getArgAsFloat(1), m.getArgAsFloat(2), m.getArgAsFloat(3)));
+
         
         } else if(m.getAddress() == "/lc"){ // Set a complete frame
             
-            for(int i=0; i < ledData.size(); i++) {
-                ledData[i].set(m.getArgAsFloat(i)*255, m.getArgAsFloat(i+1)*255, m.getArgAsFloat(i+2)*255);
+            for(int i=0; i < ledData.getWidth(); i++) {
+                ledData.setColor(i, 0, ofColor(m.getArgAsFloat(i), m.getArgAsFloat(i+1), m.getArgAsFloat(i+2)));
             }
         
         } else if(m.getAddress() == "/led/all"){ // set all at once
-			led->clear(ofColor(m.getArgAsInt32(0),m.getArgAsInt32(1),m.getArgAsInt32(2)));
             
 		} else {
 			// unrecognized message: display on the bottom of the screen
@@ -96,7 +100,20 @@ void testApp::update(){
 	if(led!=NULL)
 	{
         // sending stuff
-        led->setPixels(ledData);
+        
+        outTexture.loadData(ledData);
+        
+        led->renderBuffer.begin();
+		//drawing stuff
+		ofSetColor(255,255);
+		int width = led->renderBuffer.getWidth();
+		int height = led->renderBuffer.getHeight();
+        
+        outTexture.draw(0,0);
+        
+		led->renderBuffer.end();
+        
+        //led->setPixels(ledData);
 		led->encode();
 		spi.send(led->txBuffer);
 	}

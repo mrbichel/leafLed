@@ -39,6 +39,8 @@ class testApp : public ofBaseApp{
 	int framerate;
 	int lastFrameTime;
     
-    vector<ofColor> ledData;
+    ofFloatPixels ledData;
+    
+    ofTexture outTexture;
     
 };

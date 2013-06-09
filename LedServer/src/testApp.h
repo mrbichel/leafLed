@@ -46,7 +46,7 @@ class testApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
     
-	ofxOscSender *oscBroadcast;
+	ofxOscSender oscBroadcast;
 	
 	ofxXmlSettings xml;
 	int numDevice;
