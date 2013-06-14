@@ -1,6 +1,4 @@
 ofxOsc
 ofxXmlSettings
-ofxAnimatable
-ofxImageSequence
 ofxLEDs
 ofxLPD8806

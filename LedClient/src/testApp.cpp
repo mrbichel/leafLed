@@ -5,17 +5,11 @@ void testApp::setup(){
 	led = NULL;
 	ofxXmlSettings xml;
 	int port = 2838;
-	if(xml.loadFile("config.xml"))
-	{
-		xml.pushTag("DATA");
-		port = xml.getValue("PORT",2838);
-		xml.popTag();
-	}
+
 	receiver.setup(port);
-	ofSetLogLevel(OF_LOG_NOTICE);
+	ofSetLogLevel(OF_LOG_VERBOSE);
 	ofBackground(0);
     ofSetFrameRate(60);
-	ofEnableAlphaBlending();
 	
 	if(	spi.connect())
 	{
@@ -27,13 +21,8 @@ void testApp::setup(){
     
 	led = new ofxLEDsLPD8806(numLED);
     
-    ledData.allocate(numLED, 1, GL_RGB);
-    outTexture.allocate(ledData);
-    
-    /*for(int i = 0; i < numLED; i++) {
-        ledData.push_back(ofColor(255));
-    }*/
-    
+    ledData.assign(numLED,ofColor());
+	startThread(false,false);
     
 	ofLogNotice("OSC") << " Set LED length as " << numLED;
 }
@@ -42,8 +31,22 @@ void testApp::exit()
 {
 	if(led!=NULL)
 	{
-		led->clear(ofColor(255));
+        stopThread();
+		led->clear(0);
 		spi.send(led->txBuffer);
+	}
+}
+
+//--------------------------------------------------------------
+void testApp::threadedFunction()
+{
+	while( isThreadRunning() != 0 ){
+		if( lock() ){
+			led->setPixels(ledData);
+			spi.send(led->txBuffer);
+			unlock();
+			usleep(10000);
+		}
 	}
 }
 
@@ -58,19 +61,7 @@ void testApp::update(){
 		receiver.getNextMessage(&m);
 		
         if ( m.getAddress() == "/l" ){ // Set a single led
-            //ledData[m.getArgAsInt32(0)].set(m.getArgAsFloat(1)*255, m.getArgAsFloat(2)*255, m.getArgAsFloat(3)*255);
-                        
-            ledData.setColor(m.getArgAsInt32(0), 0, ofColor(m.getArgAsFloat(1)*255, m.getArgAsFloat(2)*255, m.getArgAsFloat(3)*255));
-            
-
-        
-        } else if(m.getAddress() == "/lc"){ // Set a complete frame
-            
-            for(int i=0; i < ledData.getWidth(); i++) {
-                ledData.setColor(i, 0, ofColor(m.getArgAsFloat(i)*255, m.getArgAsFloat(i+1)*255, m.getArgAsFloat(i+2)*255));
-            }
-        
-        } else if(m.getAddress() == "/led/all"){ // set all at once
+            ledData[m.getArgAsInt32(0)].set(m.getArgAsFloat(1)*255, m.getArgAsFloat(2)*255, m.getArgAsFloat(3)*255);
             
 		} else {
 			// unrecognized message: display on the bottom of the screen
@@ -98,41 +89,25 @@ void testApp::update(){
 			ofLogWarning("OSC") << " Unknown osc message " << msg_string;
 		}
 	}
-	
-	if(led!=NULL)
-	{
-        // sending stuff
-        
-        outTexture.loadData(ledData);
-        
-        led->renderBuffer.begin();
-		//drawing stuff
-		ofSetColor(255,255);
-		int width = led->renderBuffer.getWidth();
-		int height = led->renderBuffer.getHeight();
-        
-        outTexture.draw(0,0);
-        
-		led->renderBuffer.end();
-        
-        //led->setPixels(ledData);
-		led->encode();
-		spi.send(led->txBuffer);
-	}
+
 }
 
 //--------------------------------------------------------------
 void testApp::draw(){
-	if(ofGetLogLevel()==OF_LOG_VERBOSE)
-	{
-		if(led!=NULL)
-		{
-			ofPushMatrix();
-			led->renderBuffer.draw(0,0,ofGetWidth(),5);
-			led->encodedBuffer.draw(0,5,ofGetWidth(),5);
-			ofPopMatrix();
-		}
-	}
+    
+    ofBackground(20);
+    if(ofGetLogLevel() == OF_LOG_VERBOSE) {
+        int size = ofGetWidth()/numLED;
+        
+        for(int i =0 ; i < numLED; i++)
+        {
+            ofSetColor(ledData[i]);
+            ofFill();
+            ofRect(i * size, 0, size, ofGetHeight());
+        }
+        
+    }
+    
 }
 
 //--------------------------------------------------------------

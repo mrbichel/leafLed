@@ -12,16 +12,17 @@ struct Client {
     int port;
     
     int label; // For remembering who is who
-    int position; // For the mapping
+    ofPoint inputPos; // For the mapping
         
     ofTexture dataTexture;
     
     ofFloatPixels data;
+    ofFbo fboOut;
     
     int width;
     int height;
     
-    ofxOscSender osc;
+    ofxOscSender * osc;
     
     void setup();
     void update();
@@ -46,6 +47,9 @@ class testApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
     
+    
+    void addClient();
+    
 	ofxOscSender oscBroadcast;
 	
 	ofxXmlSettings xml;
@@ -57,5 +61,6 @@ class testApp : public ofBaseApp{
     
 	ofTexture controlTexture;
 	ofxSyphonClient syphonIn;
+    ofFbo fboIn;
 	
 };

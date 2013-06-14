@@ -11,7 +11,7 @@ int main( ){
 	ofGLES2Renderer * renderer = new ofGLES2Renderer();
 	ofSetCurrentRenderer(ofPtr<ofBaseRenderer>(renderer));
 #endif
-	ofSetupOpenGL(500,200,OF_WINDOW);
+	ofSetupOpenGL(1000,8,OF_WINDOW);
 	// this kicks off the running of my app
 	// can be OF_WINDOW or OF_FULLSCREEN
 	// pass in width and height too:

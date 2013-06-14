@@ -2,14 +2,12 @@
 
 #include "ofMain.h"
 
-#include "ofxImageSequence.h"
-#include "ofxAnimatableFloat.h"
 #include "ofxOsc.h"
 #include "ofxLEDsLPD8806.h"
 #include "ofxLPD8806.h"
 #include "ofxXmlSettings.h"
 
-class testApp : public ofBaseApp{
+class testApp : public ofBaseApp, public ofThread{
 
 	public:
 		void setup();
@@ -26,8 +24,8 @@ class testApp : public ofBaseApp{
 		void windowResized(int w, int h);
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
-	
     
+    void threadedFunction();
 	
 	ofxOscReceiver receiver;
 	ofxLEDsLPD8806 *led;
@@ -39,7 +37,7 @@ class testApp : public ofBaseApp{
 	int framerate;
 	int lastFrameTime;
     
-    ofPixels ledData;
+    vector<ofColor> ledData;//ofPixels ledData;
     
     ofTexture outTexture;
     
