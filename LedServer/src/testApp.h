@@ -5,7 +5,7 @@
 #include "ofxXmlSettings.h"
 #include "ofxAnimatableFloat.h"
 #include "ofxSyphon.h"
-
+#include "ofxUI.h"
 
 struct Client {
     string hostname;
@@ -14,7 +14,7 @@ struct Client {
     int label; // For remembering who is who
     ofPoint inputPos; // For the mapping
         
-    ofTexture dataTexture;
+    ofTexture texture;
     
     ofFloatPixels data;
     ofFbo fboOut;
@@ -49,6 +49,9 @@ class testApp : public ofBaseApp{
     
     
     void addClient();
+    
+    ofxUICanvas *gui;
+	void guiEvent(ofxUIEventArgs &e);
     
 	ofxOscSender oscBroadcast;
 	
