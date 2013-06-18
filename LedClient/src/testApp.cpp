@@ -7,7 +7,7 @@ void testApp::setup(){
 	int port = 2838;
 
 	receiver.setup(port);
-	ofSetLogLevel(OF_LOG_VERBOSE);
+	ofSetLogLevel(OF_LOG_SILENT);
 	ofBackground(0);
     ofSetFrameRate(60);
 	
@@ -17,14 +17,22 @@ void testApp::setup(){
 	}
     
 	lastFrameTime = 0;
-	numLED = 240;
-    
+	numLED = 120;
 	led = new ofxLEDsLPD8806(numLED);
+    ledData.assign(numLED,ofColor(255, 255, 255));
     
-    ledData.assign(numLED,ofColor());
 	startThread(false,false);
     
 	ofLogNotice("OSC") << " Set LED length as " << numLED;
+    
+    sender.setup("0.0.0.0", 7777);
+    ofxOscMessage m;
+    m.setAddress("/status");
+    m.addIntArg(2);
+    m.addStringArg("Ready to receive data.");
+    sender.sendMessage(m);
+    
+    
 }
 
 void testApp::exit()
@@ -52,7 +60,6 @@ void testApp::threadedFunction()
 
 //--------------------------------------------------------------
 void testApp::update(){
-	float  dt = 1.0f / ofGetFrameRate();
 	// check for waiting messages
 	while(receiver.hasWaitingMessages()){
 		// get the next message
@@ -61,7 +68,41 @@ void testApp::update(){
 		receiver.getNextMessage(&m);
 		
         if ( m.getAddress() == "/l" ){ // Set a single led
-            ledData[m.getArgAsInt32(0)].set(m.getArgAsFloat(1)*255, m.getArgAsFloat(2)*255, m.getArgAsFloat(3)*255);
+            
+            ledData[m.getArgAsInt32(0)].set(m.getArgAsInt32(1), m.getArgAsInt32(2), m.getArgAsInt32(3), 255);
+            
+            ofLogNotice("OSC") << "l: " << ofToString(m.getArgAsInt32(1)) << " l - r:" << ofToString(m.getArgAsInt32(1)) << "g:" <<ofToString(m.getArgAsInt32(2)) << "b:" << ofToString(m.getArgAsInt32(3))<<endl;
+            
+        } else if ( m.getAddress() == "/p" ) { // Set all
+            for(int i=0; i<numLED; i++) {
+                ledData[i].set(m.getArgAsInt32(i),m.getArgAsInt32(i+1),m.getArgAsInt32(i+2));
+            }
+        } else if ( m.getAddress() == "/c" ) {
+            // Compressed data not yet implemented
+       
+        } else if ( m.getAddress() == "/status" ) {
+            
+            sender.setup(m.getRemoteIp(), m.getRemotePort());
+            ofxOscMessage r;
+            r.setAddress("/status");
+            r.addIntArg(1);
+            r.addStringArg("All good, alive and listening!");
+            sender.sendMessage(r);
+        } else if ( m.getAddress() == "/debug" ) {
+            
+            if(m.getArgAsInt32(0)) {
+                ofSetLogLevel(OF_LOG_VERBOSE);
+            } else {
+                ofSetLogLevel(OF_LOG_SILENT);
+            }
+        
+        } else if ( m.getAddress() == "/setLength" ) {
+            
+            numLED = m.getArgAsInt32(0);
+            
+            led = new ofxLEDsLPD8806(numLED);
+            ledData.assign(numLED,ofColor());
+            
             
 		} else {
 			// unrecognized message: display on the bottom of the screen

@@ -28,6 +28,8 @@ class testApp : public ofBaseApp, public ofThread{
     void threadedFunction();
 	
 	ofxOscReceiver receiver;
+    ofxOscSender sender;
+    
 	ofxLEDsLPD8806 *led;
 	ofxLPD8806 spi;
 
