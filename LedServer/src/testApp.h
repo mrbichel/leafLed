@@ -14,12 +14,12 @@ struct Client {
     string label = "leaf.local"; // For remembering who is who
     ofPoint inputPos; // For the mapping
         
-    ofTexture texture;
+    //ofTexture texture;
     
-    ofPixels pixels;
+    //ofPixels pixels;
     vector<ofColor> colors;
     
-    ofFbo fboOut;
+    //ofFbo fboOut;
     
     int width = 1;
     int height = 120;
@@ -79,7 +79,7 @@ class testApp : public ofBaseApp{
 	ofTexture controlTexture;
 	ofxSyphonClient syphonIn;
     ofFbo fboIn;
-    ofFbo fboPixelTransfer;
+    //ofFbo fboPixelTransfer;
     ofPixels controlPixels;
 	
 };

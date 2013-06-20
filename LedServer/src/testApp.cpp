@@ -23,7 +23,7 @@ void testApp::setup(){
     fboIn.allocate(inputWidth, inputHeight);
     controlTexture.allocate(inputWidth, inputHeight, GL_RGB);
     
-    fboPixelTransfer.allocate(1, 120);
+    //fboPixelTransfer.allocate(1, 120);
     
     // Setup all clients
     for(int i=0; i<numClients; i++) {
@@ -125,7 +125,7 @@ void testApp::addClient() {
     Client c;
     
     //c.fboOut.allocate(c.width, c.height);
-    c.texture.allocate(c.width, c.height, GL_RGB);
+    //c.texture.allocate(c.width, c.height, GL_RGB);
     c.colors.assign(c.height, ofColor(255));
     
     //c.hostname = "leaf"+ofToString(i)+".local";
@@ -297,17 +297,13 @@ void testApp::draw(){
         ofRect(clients[i].inputPos.x, clients[i].inputPos.y, clients[i].width, clients[i].height);
         ofFill();
         
-        fboPixelTransfer.begin();
-        
+        /*fboPixelTransfer.begin();
         ofBackground(0);
-
         controlTexture.drawSubsection(0, 0, clients[i].width, clients[i].height,
                                       clients[i].inputPos.x, clients[i].inputPos.y);
-        
-        fboPixelTransfer.end();
+        fboPixelTransfer.end();*/
         
         controlTexture.readToPixels(controlPixels);
-        clients[i].texture.loadData(clients[i].pixels);
      
         for(int p = 0; p < clients[i].height; p++) {
             clients[i].colors[p] = controlPixels.getColor(clients[i].inputPos.x, clients[i].inputPos.y+p);
