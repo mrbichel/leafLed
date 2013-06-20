@@ -269,6 +269,7 @@ void testApp::draw(){
         glEnable(GL_BLEND);
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
         ofBackground(0);
+    
             syphonIn.draw(0, 0, fboIn.getWidth(), fboIn.getHeight());
     
         glDisable(GL_BLEND);
@@ -278,10 +279,9 @@ void testApp::draw(){
     ofDisableAlphaBlending();
     
     
+    // Draw the input and copy to output color data
     ofPushMatrix();
     ofTranslate(400, 20);
-    ofScale(1, 1);
-    
     ofSetColor(255);
     ofNoFill();
     ofRect(-1, -1, inputWidth+2, inputHeight+2);
@@ -290,7 +290,7 @@ void testApp::draw(){
     for(int i=0; i<clients.size(); i++) {
         
         ofNoFill();
-        ofRect(clients[i].inputPos.x, clients[i].inputPos.y, clients[i].width, clients[i].height);
+        //ofRect(clients[i].inputPos.x, clients[i].inputPos.y, clients[i].width+1, clients[i].height);
         ofFill();
         
         /*fboPixelTransfer.begin();
@@ -300,16 +300,10 @@ void testApp::draw(){
         fboPixelTransfer.end();*/
         
         controlTexture.readToPixels(controlPixels);
-     
         for(int p = 0; p < clients[i].height; p++) {
             clients[i].colors[p] = controlPixels.getColor(clients[i].inputPos.x, clients[i].inputPos.y+p);
-            
         }
-        
     }
-    
-    
-    
     ofPopMatrix();
 
     ofPushMatrix();

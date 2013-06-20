@@ -8,19 +8,14 @@
 #include "ofxUI.h"
 
 struct Client {
-    string hostname = "127.0.0.1";
+    string hostname;// = "127.0.0.1";
     int port = 7010;
     
-    string label = "leaf.local"; // For remembering who is who
-    ofPoint inputPos; // For the mapping
+    string label;// = "leaf.local";
         
-    //ofTexture texture;
-    
-    //ofPixels pixels;
     vector<ofColor> colors;
     
-    //ofFbo fboOut;
-    
+    ofPoint inputPos;
     int width = 1;
     int height = 120;
     
@@ -70,16 +65,16 @@ class testApp : public ofBaseApp{
     ofxOscReceiver oscReceiver;
 	
 	ofxXmlSettings xml;
-	int numDevice;
-	void  initClient();
-	bool bDebug;
     
     vector<Client> clients;
     
-	ofTexture controlTexture;
-	ofxSyphonClient syphonIn;
+    ofxSyphonClient syphonIn;
     ofFbo fboIn;
-    //ofFbo fboPixelTransfer;
+	ofTexture controlTexture;
     ofPixels controlPixels;
+    
+    bool monitorInput;
+    bool monitorOutput;
+    
 	
 };
