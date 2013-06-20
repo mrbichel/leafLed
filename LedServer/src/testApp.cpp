@@ -302,14 +302,15 @@ void testApp::draw(){
         ofBackground(0);
 
         controlTexture.drawSubsection(0, 0, clients[i].width, clients[i].height,
-                                      clients[i].inputPos.x, clients[i].inputPos.y+2);
+                                      clients[i].inputPos.x, clients[i].inputPos.y);
         
         fboPixelTransfer.end();
-        fboPixelTransfer.getTextureReference().readToPixels(clients[i].pixels);
+        
+        controlTexture.readToPixels(controlPixels);
         clients[i].texture.loadData(clients[i].pixels);
      
         for(int p = 0; p < clients[i].height; p++) {
-            clients[i].colors[p] = clients[i].pixels.getColor(0, p);
+            clients[i].colors[p] = controlPixels.getColor(clients[i].inputPos.x, clients[i].inputPos.y+p);
             
         }
         
@@ -318,26 +319,21 @@ void testApp::draw(){
     
     
     ofPopMatrix();
-    
-    
+
     ofPushMatrix();
     ofTranslate(620, 20);
-    ofNoFill();
-    ofRect(0,0,10*clients.size()+4, 404);
     ofFill();
-    
-    for(int i=0; i<clients.size(); i++) {
-        clients[i].texture.draw(i*10+4,2,6,400);
-    }
     
     
     for(int i=0; i<clients.size(); i++) {
         
+        
+        //clients
         
         for(int c=0; c<clients[i].colors.size(); c++) {
             
             ofSetColor(clients[i].colors[c]);
-            ofRect(i*10+4, 10+400+c, 6, 1);
+            ofRect(i*10+4, 10+c, 6, 1);
         }
         
         
@@ -352,18 +348,11 @@ void testApp::draw(){
         int column = i/10;
         int row = i - (column*10);
         
-        
-        
         ofTranslate(400 + (i/10 * 200), row*100);
-        
         ofDrawBitmapString(clients[i].label, 10,10);
-        
         ofDrawBitmapString("Hostname:" + clients[i].hostname, 20,30);
-        
         ofDrawBitmapString("Connected:" + ofToString(clients[i].connected), 20,50);
-        
         ofDrawBitmapString("Enabled:" +   ofToString(clients[i].enabled), 20,70);
-        
         ofPopMatrix();
     
     }
