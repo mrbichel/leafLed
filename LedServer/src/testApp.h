@@ -8,10 +8,10 @@
 #include "ofxUI.h"
 
 struct Client {
-    string hostname = "leaf.local";
+    string hostname = "127.0.0.1";
     int port = 2838;
     
-    int label; // For remembering who is who
+    string label = "leaf.local"; // For remembering who is who
     ofPoint inputPos; // For the mapping
         
     ofTexture texture;
@@ -22,7 +22,7 @@ struct Client {
     ofFbo fboOut;
     
     int width = 1;
-    int height = 120;
+    int height = 121;
     
     ofxOscSender * osc;
     
@@ -30,7 +30,7 @@ struct Client {
     bool enabled = true;
     
     void setup();
-    void update();
+    void update(string method);
     void exit();
 };
 
@@ -53,12 +53,21 @@ class testApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
     
     
+    int numClients = 5;
+    
+    int inputWidth = 202;
+    int inputHeight = 260;
+    
+    string updateMethod = "packed";
+    
+    
     void addClient();
     
     ofxUIScrollableCanvas *gui;
 	void guiEvent(ofxUIEventArgs &e);
     
 	ofxOscSender oscBroadcast;
+    ofxOscReceiver oscReceiver;
 	
 	ofxXmlSettings xml;
 	int numDevice;

@@ -1,11 +1,5 @@
 #include "testApp.h"
 
-const int numClients = 1;
-
-const int inputWidth = 202;
-const int inputHeight = 260;
-
-const string updateMethod = "raw";
 
 void testApp::setup(){
     
@@ -27,8 +21,8 @@ void testApp::setup(){
         
     fboIn.allocate(inputWidth, inputHeight);
     controlTexture.allocate(inputWidth, inputHeight, GL_RGB);
-    // Setup all clients
     
+    // Setup all clients
     for(int i=0; i<numClients; i++) {
         addClient();
     }
@@ -57,8 +51,8 @@ void testApp::setup(){
     
     for(int i=0; i<numClients; i++) {
         
-        gui->addWidgetDown(new ofxUILabel("Leaf: " + ofToString(i), OFX_UI_FONT_SMALL));
-        gui->addTextInput("hostname" + ofToString(i), clients[i].hostname);
+        gui->addWidgetDown(new ofxUILabel(clients[i].label, OFX_UI_FONT_SMALL));
+        gui->addTextInput(clients[i].label + "_hostname", clients[i].hostname);
         
         //gui->add2DPad("Input position", ofVec3f(0, inputWidth), ofVec3f(0, inputHeight), clients[i].inputPos);
     }
@@ -66,8 +60,7 @@ void testApp::setup(){
     gui->autoSizeToFitWidgets();
     
     ofAddListener(gui->newGUIEvent,this,&testApp::guiEvent);
-    //gui->loadSettings("GUI/guiSettings.xml");
-    
+    gui->loadSettings("GUI/guiSettings.xml");
     
 }
 
@@ -91,25 +84,30 @@ void testApp::guiEvent(ofxUIEventArgs &e)
     
     if(name.find("hostname" > 0))
     {
-        //  name.
+        for(int i=0; i<clients.size();i++) {
+            
+            if(clients[i].label + "_hostname" == name) {
         
-        ofxUITextInput *textinput = (ofxUITextInput *) e.widget;
-        if(textinput->getTriggerType() == OFX_UI_TEXTINPUT_ON_ENTER)
-        {
-            cout << "ON ENTER: ";
-            //            ofUnregisterKeyEvents((testApp*)this);
+                ofxUITextInput *textinput = (ofxUITextInput *) e.widget;
+                if(textinput->getTriggerType() == OFX_UI_TEXTINPUT_ON_ENTER) {
+                    cout << "ON ENTER: ";
+                    //            ofUnregisterKeyEvents((testApp*)this);
+                } else if(textinput->getTriggerType() == OFX_UI_TEXTINPUT_ON_FOCUS) {
+                    cout << "ON FOCUS: ";
+                } else if(textinput->getTriggerType() == OFX_UI_TEXTINPUT_ON_UNFOCUS) {
+                    cout << "ON BLUR: ";
+                    //            ofRegisterKeyEvents(this);
+                }
+                
+                string output = textinput->getTextString();
+                clients[i].hostname == textinput->getTextString();
+                textinput->setTextString(clients[i].hostname);
+                
+                cout << output << endl;
+                
+            }
+            
         }
-        else if(textinput->getTriggerType() == OFX_UI_TEXTINPUT_ON_FOCUS)
-        {
-            cout << "ON FOCUS: ";
-        }
-        else if(textinput->getTriggerType() == OFX_UI_TEXTINPUT_ON_UNFOCUS)
-        {
-            cout << "ON BLUR: ";
-            //            ofRegisterKeyEvents(this);
-        }
-        string output = textinput->getTextString();
-        cout << output << endl;
     }
     
 }
@@ -128,6 +126,10 @@ void testApp::addClient() {
     //c.hostname = "leaf"+ofToString(i)+".local";
     
     c.osc = new ofxOscSender();
+    
+    c.label = "leaf" + ofToString(index+1);
+    c.hostname = c.label + ".local";
+    
     c.osc->setup(c.hostname, c.port);
     clients.push_back(c);
         
@@ -135,63 +137,81 @@ void testApp::addClient() {
     
 }
 
-void Client::update() {
+void Client::update(string method) {
     
     
     // TODO output data from framebuffer texture
     
     //m.setRemoteEndpoint(hostname, port);    
     
-    texture.readToPixels(pixels);
+    if(connected && enabled) {
     
-    // Performance notes
-    // raw pack and send: 16 FPS
-    // Only pack: 36 FPS
-    // Only update pixelsArray: 70 - 100 FPS
-    // Conclusion: send fewer OSC packages
-    
-    // Packed
-    // 50 - 80 FPS
-    
-    if(updateMethod == "raw") {
-        // Send each pixel as a OSC message
+        texture.readToPixels(pixels);
         
+        // Performance notes
+        // raw pack and send: 16 FPS
+        // Only pack: 36 FPS
+        // Only update pixelsArray: 70 - 100 FPS
+        // Conclusion: send fewer OSC packages
         
+        // Packed
+        // 50 - 80 FPS
         
         for(int i = 0; i < height; i++) {
-            
-            ofxOscMessage m;
-            m.setAddress("/l");
-            
-            
-            
             colors[i] = pixels.getColor(1, i);
             
-            m.addIntArg(i);
+        }
+        
+        if(method == "raw") {
+            // Send each pixel as a OSC message
             
-            m.addIntArg(colors[i].r);
-            m.addIntArg(colors[i].b); // yes this is reversed
-            m.addIntArg(colors[i].g);
+            for(int i=0; i < height; i++) {
+                
+                ofxOscMessage m;
+                m.setAddress("/l");
+                 
+                m.addIntArg(i);
+                
+                m.addIntArg(colors[i].r);
+                m.addIntArg(colors[i].b); // yes this is reversed
+                m.addIntArg(colors[i].g);
+                
+                //cout<<"C color r: "<<ofToString(c.r)<<endl;
+                
+                osc->sendMessage(m);
+                
+            }
+        } else if(method == "packed") { // does this break a size limit
+            // Send enitre frame as one OSC message
             
-            //cout<<"C color r: "<<ofToString(c.r)<<endl;
+            ofxOscMessage m;
+            m.setAddress("/p");
+            
+            for(int i = 0; i < colors.size(); i++) {
+                m.addIntArg(colors[i].r);
+                m.addIntArg(colors[i].b); // yes this is reversed
+                m.addIntArg(colors[i].g);
+            }
+            
+            cout<<ofToString(hostname)<<ofToString(m.getRemoteIp())<<endl;
             
             osc->sendMessage(m);
             
+        } else if(method == "compressed") {
+            // TODO: send a compressed frame over osc and decompress it on clients
         }
-    } else if(updateMethod == "packed") { // does this break a size limit
-        // Send enitre frame as one OSC message
-        
-        ofxOscMessage m;
-        m.setAddress("/p");
-        
-        for(int i = 0; i < pixels.size(); i++) {
-            m.addFloatArg(pixels[i]);
+    }
+    
+    
+    if(!connected && enabled) {
+        if(ofGetElapsedTimeMillis() % 100 == 1) {
+            ofxOscMessage m;
+            m.setAddress("/status");
+            m.addStringArg(label);
+            osc->sendMessage(m);
+            
+            ofLogWarning(ofToString(hostname) + ": Not connected!");
         }
-        
-        osc->sendMessage(m);
-        
-    } else if(updateMethod == "compressed") {
-        // TODO: send a compressed frame over osc and decompress it on clients
     }
     
 }
@@ -199,25 +219,63 @@ void Client::update() {
 //--------------------------------------------------------------
 void testApp::update(){
     
-	for(int i=0; i<clients.size(); i++) {
-
-       if(ofGetFrameNum() % 2 == 1) clients[i].update();
+    
+    while(oscReceiver.hasWaitingMessages()){
         
+		// get the next message
+		ofxOscMessage m;
+        
+		oscReceiver.getNextMessage(&m);        
+        if ( m.getAddress() == "/status" ){
+            
+            string label = m.getArgAsString(0);
+            int status = m.getArgAsInt32(1);
+            string message = m.getArgAsString(2);
+            
+            
+            ofLogNotice("Got Status callback from: " + label + " status: " + ofToString(status) + "   " + message );
+            
+            for(int i=0; i<clients.size(); i++) {
+                if(clients[i].label == label) {
+                    if(status > 0) {
+                        clients[i].connected == true;
+                    }
+                }
+            }
+        
+            
+        }
     }
+    
+    
+	for(int i=0; i<clients.size(); i++) {
+        //if(ofGetFrameNum() % 4 == 1)
+        clients[i].update(updateMethod);
+    }
+    
 }
 
 //--------------------------------------------------------------
 void testApp::draw(){
+    
+    ofEnableAlphaBlending();
     
     ofSetColor(255);
     ofBackground(30);
     
     fboIn.begin();
     
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    
     ofBackground(0);
     
-    syphonIn.draw(0, 0, fboIn.getWidth(), fboIn.getHeight());
     
+    syphonIn.draw(0, 0, fboIn.getWidth(), fboIn.getHeight());
+    glDisable(GL_BLEND);
+    
+    ofClearAlpha();
+
     fboIn.end();
     
     controlTexture = fboIn.getTextureReference();
@@ -227,6 +285,7 @@ void testApp::draw(){
     ofScale(1, 1);
     
     ofSetColor(255);
+    ofNoFill();
     ofRect(-1, -1, inputWidth+2, inputHeight+2);
     controlTexture.draw(0,0, inputWidth, inputHeight);
     
@@ -237,7 +296,9 @@ void testApp::draw(){
         ofFill();
         
         clients[i].fboOut.begin();
+        
         ofBackground(0);
+
         controlTexture.drawSubsection(0, 0, clients[i].width, clients[i].height,
                                       clients[i].inputPos.x, clients[i].inputPos.y);
         

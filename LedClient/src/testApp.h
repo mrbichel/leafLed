@@ -32,13 +32,16 @@ class testApp : public ofBaseApp, public ofThread{
     
 	ofxLEDsLPD8806 *led;
 	ofxLPD8806 spi;
-
-	bool isLoop;
 	
 	int numLED;
-	int framerate;
-	int lastFrameTime;
+	int refreshRate;
     
+	long lastLedCmdTime;
+    long lastCmdTime;
+    
+    int autoModeDelay;
+    bool autoMode;
+        
     vector<ofColor> ledData;//ofPixels ledData;
     
     ofTexture outTexture;

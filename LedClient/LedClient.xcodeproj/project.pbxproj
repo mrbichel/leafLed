@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		043C7A5C177080570065AE33 /* ofxLPD8806.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 043C7A42177080570065AE33 /* ofxLPD8806.cpp */; };
 		0546d1a38e13bd319cc9755b5ca7e1a0 /* OscReceivedElements.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9bf3aa0d4faa89d0f8a0e545403162be /* OscReceivedElements.cpp */; };
 		106d18a4d26dd8d1ca3e2fe0fa8955c7 /* ofxLEDsLPD8806.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9ccda013394f7891c6674f683eee3dd6 /* ofxLEDsLPD8806.cpp */; };
 		28090deb5109115003e8f1c540f04092 /* UdpSocketWin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5928aa323f5c2690b06c837d8d036f55 /* UdpSocketWin.cpp */; };
@@ -50,7 +51,6 @@
 		a29d8c96ae042eceaa1bd4f3cbbf0c9d /* NetworkingUtilsWin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2a5b1fad3f30c8065c396acbb72e5d95 /* NetworkingUtilsWin.cpp */; };
 		ade367465d2a8ebad4c7a8d92a3ef718 /* IpEndpointName.cpp in Sources */ = {isa = PBXBuildFile; fileRef = add194746185e2da11468377f4e88c2f /* IpEndpointName.cpp */; };
 		c4782ecc372420ace0615b749e1d0d6b /* OscPrintReceivedElements.cpp in Sources */ = {isa = PBXBuildFile; fileRef = bc8881b3c8c0a1c45f042e7a9e7b92cc /* OscPrintReceivedElements.cpp */; };
-		e6fe283dd1edc2a61f6e54d6fa96a216 /* ofxLPD8806.cpp in Sources */ = {isa = PBXBuildFile; fileRef = fe5992bbc4c97487d14ac3b491fb5521 /* ofxLPD8806.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -87,11 +87,14 @@
 		00d6d32b84b099226431108cea775a33 /* ofxOsc.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = ofxOsc.h; path = ../../../addons/ofxOsc/src/ofxOsc.h; sourceTree = SOURCE_ROOT; };
 		01dcc0911400f9acf5b65578af4ec8f9 /* ofxXmlSettings.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = ofxXmlSettings.h; path = ../../../addons/ofxXmlSettings/src/ofxXmlSettings.h; sourceTree = SOURCE_ROOT; };
 		029684cf678f70f6d3537a29773654a6 /* OscOutboundPacketStream.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = OscOutboundPacketStream.h; path = ../../../addons/ofxOsc/libs/oscpack/src/osc/OscOutboundPacketStream.h; sourceTree = SOURCE_ROOT; };
+		043C78A5177080550065AE33 /* .gitignore */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		043C7A40177080570065AE33 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
+		043C7A42177080570065AE33 /* ofxLPD8806.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxLPD8806.cpp; sourceTree = "<group>"; };
+		043C7A43177080570065AE33 /* ofxLPD8806.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxLPD8806.h; sourceTree = "<group>"; };
 		20f35afadaf0068b067e713fa3152568 /* OscReceivedElements.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = OscReceivedElements.h; path = ../../../addons/ofxOsc/libs/oscpack/src/osc/OscReceivedElements.h; sourceTree = SOURCE_ROOT; };
 		23640f57df6c4bb6bfc5da4c2199c7dd /* PacketListener.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = PacketListener.h; path = ../../../addons/ofxOsc/libs/oscpack/src/ip/PacketListener.h; sourceTree = SOURCE_ROOT; };
 		2a5b1fad3f30c8065c396acbb72e5d95 /* NetworkingUtilsWin.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 30; name = NetworkingUtilsWin.cpp; path = ../../../addons/ofxOsc/libs/oscpack/src/ip/win32/NetworkingUtilsWin.cpp; sourceTree = SOURCE_ROOT; };
 		2b40eda85beb63e46785bc299a638898 /* tinyxml.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 30; name = tinyxml.cpp; path = ../../../addons/ofxXmlSettings/libs/tinyxml.cpp; sourceTree = SOURCE_ROOT; };
-		2b51b8f812617bb96349bfb8a1eb6227 /* ofxLPD8806.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = ofxLPD8806.h; path = ../../../addons/ofxLPD8806/src/ofxLPD8806.h; sourceTree = SOURCE_ROOT; };
 		2fd4b0329909d3527f0034948840df14 /* UdpSocket.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = UdpSocket.h; path = ../../../addons/ofxOsc/libs/oscpack/src/ip/UdpSocket.h; sourceTree = SOURCE_ROOT; };
 		346571c18f9b733b0ae676481dc9e28f /* ofxLEDsImplementation.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 30; name = ofxLEDsImplementation.cpp; path = ../../../addons/ofxLEDs/src/ofxLEDsImplementation.cpp; sourceTree = SOURCE_ROOT; };
 		36cf825059625d27329579cfccd371e3 /* ofxLEDsLPD8806.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = ofxLEDsLPD8806.h; path = ../../../addons/ofxLEDs/src/ofxLEDsLPD8806.h; sourceTree = SOURCE_ROOT; };
@@ -159,7 +162,6 @@
 		f4f5b6b8ba2bd52c646ed9087d6ed9cf /* OscException.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = OscException.h; path = ../../../addons/ofxOsc/libs/oscpack/src/osc/OscException.h; sourceTree = SOURCE_ROOT; };
 		f7fbc56859535e597b24bb914dbc8313 /* NetworkingUtils.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = NetworkingUtils.h; path = ../../../addons/ofxOsc/libs/oscpack/src/ip/NetworkingUtils.h; sourceTree = SOURCE_ROOT; };
 		fc5da1c87211d4f6377da7199d8c5a1e /* tinyxmlparser.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 30; name = tinyxmlparser.cpp; path = ../../../addons/ofxXmlSettings/libs/tinyxmlparser.cpp; sourceTree = SOURCE_ROOT; };
-		fe5992bbc4c97487d14ac3b491fb5521 /* ofxLPD8806.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 30; name = ofxLPD8806.cpp; path = ../../../addons/ofxLPD8806/src/ofxLPD8806.cpp; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -190,6 +192,26 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		043C78A4177080550065AE33 /* ofxLPD8806 */ = {
+			isa = PBXGroup;
+			children = (
+				043C78A5177080550065AE33 /* .gitignore */,
+				043C7A40177080570065AE33 /* README.md */,
+				043C7A41177080570065AE33 /* src */,
+			);
+			name = ofxLPD8806;
+			path = ../../../addons/ofxLPD8806;
+			sourceTree = "<group>";
+		};
+		043C7A41177080570065AE33 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				043C7A42177080570065AE33 /* ofxLPD8806.cpp */,
+				043C7A43177080570065AE33 /* ofxLPD8806.h */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
 		1f4fb5c423662b96adfdcc0badec1cb0 /* ofxXmlSettings */ = {
 			isa = PBXGroup;
 			children = (
@@ -245,15 +267,6 @@
 			name = src;
 			sourceTree = "<group>";
 		};
-		55305ca8536dfa6b15d574a7fa9adb47 /* src */ = {
-			isa = PBXGroup;
-			children = (
-				fe5992bbc4c97487d14ac3b491fb5521 /* ofxLPD8806.cpp */,
-				2b51b8f812617bb96349bfb8a1eb6227 /* ofxLPD8806.h */,
-			);
-			name = src;
-			sourceTree = "<group>";
-		};
 		641362ca659fafee4e81001be7d8d43c /* posix */ = {
 			isa = PBXGroup;
 			children = (
@@ -291,21 +304,13 @@
 			name = oscpack;
 			sourceTree = "<group>";
 		};
-		9bcfcee4e3da9c43a291d468ad3289ea /* ofxLPD8806 */ = {
-			isa = PBXGroup;
-			children = (
-				55305ca8536dfa6b15d574a7fa9adb47 /* src */,
-			);
-			name = ofxLPD8806;
-			sourceTree = "<group>";
-		};
 		BB4B014C10F69532006C3DED /* addons */ = {
 			isa = PBXGroup;
 			children = (
+				043C78A4177080550065AE33 /* ofxLPD8806 */,
 				e6053ab7fec63d5f83825b880ce53c41 /* ofxOsc */,
 				1f4fb5c423662b96adfdcc0badec1cb0 /* ofxXmlSettings */,
 				b4bb92033c71c3008480095d67f8ac3d /* ofxLEDs */,
-				9bcfcee4e3da9c43a291d468ad3289ea /* ofxLPD8806 */,
 			);
 			name = addons;
 			sourceTree = "<group>";
@@ -565,7 +570,7 @@
 				81f0780a76b36a980f447bad3180ddab /* ofxLEDsImplementation.cpp in Sources */,
 				106d18a4d26dd8d1ca3e2fe0fa8955c7 /* ofxLEDsLPD8806.cpp in Sources */,
 				4dae3d4315c54e56c44e7e915f964b78 /* ofxLEDsP9813.cpp in Sources */,
-				e6fe283dd1edc2a61f6e54d6fa96a216 /* ofxLPD8806.cpp in Sources */,
+				043C7A5C177080570065AE33 /* ofxLPD8806.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -1,25 +1,165 @@
-from fabric.api import run, local, env, cd, lcd
-from fabric.operations import put
+from fabric.api import run, local, env, cd, lcd, settings
+from fabric.operations import put, get
+from fabric.decorators import roles
+#            #run("nohup make >& /dev/null < /dev/null &") # Run in the background
 
-env.hosts = ['pi@leaf.local']
+# has new passwords:
+# 3, 10, 11, 12, 20
+
+env.password = "etunaz20"
+env.roledefs = {
+    'leader': ['pi@leaf1.local', ],
+    'all': [
+        'pi@leaf1.local',
+        'pi@leaf2.local',
+        'pi@leaf3.local',
+        #'pi@leaf4.local',
+        #'pi@leaf5.local',
+        #'pi@leaf6.local',
+        #'pi@leaf7.local',
+        #'pi@leaf8.local',
+        #'pi@leaf9.local',
+        'pi@leaf10.local',
+        'pi@leaf11.local',
+        'pi@leaf12.local',
+        #'pi@leaf13.local',
+        #'pi@leaf14.local',
+        #'pi@leaf15.local',
+        #'pi@leaf16.local',
+        #'pi@leaf17.local',
+        #'pi@leaf18.local',
+        #'pi@leaf19.local',
+        'pi@leaf20.local',
+        #'pi@leaf21.local',
+        #'pi@leaf22.local',
+        #'pi@leaf23.local',
+        #'pi@leaf24.local',
+        #'pi@leaf25.local',
+        #'pi@leaf26.local',
+        #'pi@leaf27.local',
+        #'pi@leaf28.local',
+        #'pi@leaf29.local',
+        #'pi@leaf30.local',
+    ],
+    'old_password': [
+        'pi@leaf21.local',
+        'pi@leaf22.local',
+        'pi@leaf23.local',
+        'pi@leaf24.local',
+        'pi@leaf25.local',
+        'pi@leaf26.local',
+        'pi@leaf27.local',
+        'pi@leaf28.local',
+        'pi@leaf29.local',
+        'pi@leaf30.local',
+        'pi@leaf13.local',
+        'pi@leaf14.local',
+        'pi@leaf15.local',
+        'pi@leaf16.local',
+        'pi@leaf17.local',
+        'pi@leaf18.local',
+        'pi@leaf19.local',
+        'pi@leaf4.local',
+        'pi@leaf5.local',
+        'pi@leaf6.local',
+        'pi@leaf7.local',
+        'pi@leaf8.local',
+        'pi@leaf9.local',
+    ]
+}
+
 env.skip_bad_hosts=True
+addons_dir = '/home/pi/openFrameworks/addons'
+code_dir = '/home/pi/openFrameworks/apps/leafLed/LedClient'
 
 
-code_dir = '/home/pi/openFrameworks/apps/piLedControl/LedClient'
+def compile_deploy():
+    compile()
+    deploy_all()
 
-def upgrade():
+@roles('all')
+def upgrade_system():
     run('sudo apt-get update')
     run('sudo apt-get upgrade')
 
-def start():
-    with cd(code_dir):
-        run("sudo make run")
+@roles('leader')
+def test_run():
+    start()
 
-def deploy():
-    with cd(code_dir):
+#@roles('all')
+#def update_src_all():    
+#   with cd(code_dir):  
+#        with lcd('LedClient'):
+#            put('src/*', 'src/')   
+#
+#with lcd('../../addons/'):
+#    with cd(addons_dir):
+#        put('ofxLPD8806/src/*', 'ofxLPD8806/src/')
+            
+            
+@roles('leader')
+def update_addons():
+    with lcd('../../addons/'):
+        with cd(addons_dir):
+            put('ofxLPD8806/src/*', 'ofxLPD8806/src/')
+
+
+# TODO: Compile 1 place then distribute
+@roles('leader')
+def compile():
+    with cd(code_dir):  
         with lcd('LedClient'):
             put('src/*', 'src/')
             run("make")
-            #run("nohup make >& /dev/null < /dev/null &") # Run in the background
-            
-        
+            get("bin/LedClient", "./bin/")
+
+@roles('all')
+def kill_all():
+    with settings(warn_only=True):
+        run('sudo killall -r LedClient') # stop it first
+
+@roles('all')
+def deploy_all():
+    with cd(code_dir):  
+        with lcd('LedClient'):
+            run('rm bin/LedClient')
+            put('bin/LedClient', 'bin')
+            run('chmod a+x ./bin/LedClient')
+        start_background()
+
+def start_background(): # not working
+    #run("dtach sudo make run") 
+    # _runbg('sudo make run');
+    run("screen -d -m sudo make run; sleep 1") 
+    #run("nohup sudo make run & sleep 5; exit 0") 
+    #run("nohup sudo make run & sleep 5; exit 0 >& /dev/null < /dev/null &") 
+
+@roles('leader')
+def test_start():
+    start()
+    
+def start():
+    with settings(warn_only=True):
+        run('sudo killall -r LedClient') # stop it first
+    with cd(code_dir):
+        run("sudo make run")
+
+@roles('all')
+def start_all():
+    start()
+
+@roles('all')
+def reboot_all():
+    run("sudo reboot")
+
+@roles('all')
+def list():
+    run("hostname")
+
+@roles('old_password')
+def set_passwords():
+    run('passwd pi')
+
+@roles('all')
+def install_screen():
+    run("sudo apt-get install screen")
