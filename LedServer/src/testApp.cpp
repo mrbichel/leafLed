@@ -3,17 +3,20 @@
 
 void testApp::setup(){
     
+    numClients = 29;
+    
     ofEnableAlphaBlending();
-    ofSetFrameRate(30);
+    ofSetFrameRate(60);
     
     // TODO add gui for configuring nodes
     
 	ofSetLogLevel(OF_LOG_VERBOSE);
+    
+    oscReceiver.setup(7020);
 	
 	//ofSetFrameRate(110);
     
     // syphon input
-    
     syphonIn.setup();
     //syphonIn.setApplicationName("MadMapper");
     syphonIn.setApplicationName("Modul8");
@@ -21,6 +24,8 @@ void testApp::setup(){
         
     fboIn.allocate(inputWidth, inputHeight);
     controlTexture.allocate(inputWidth, inputHeight, GL_RGB);
+    
+    fboPixelTransfer.allocate(1, 120);
     
     // Setup all clients
     for(int i=0; i<numClients; i++) {
@@ -44,18 +49,18 @@ void testApp::setup(){
     //gui->addWidgetDown(new ofxUILabel("Performance", OFX_UI_FONT_MEDIUM));
     
     
-    gui->addWidgetDown(new ofxUILabel("Leafs - Client config", OFX_UI_FONT_MEDIUM));
-    gui->addSpacer(length, 2);    
+    //gui->addWidgetDown(new ofxUILabel("Leafs - Client config", OFX_UI_FONT_MEDIUM));
+    //gui->addSpacer(length, 2);
     
-    gui->setWidgetFontSize(OFX_UI_FONT_SMALL);
+    //gui->setWidgetFontSize(OFX_UI_FONT_SMALL);
     
-    for(int i=0; i<numClients; i++) {
+    //for(int i=0; i<numClients; i++) {
         
-        gui->addWidgetDown(new ofxUILabel(clients[i].label, OFX_UI_FONT_SMALL));
-        gui->addTextInput(clients[i].label + "_hostname", clients[i].hostname);
+    //    gui->addWidgetDown(new ofxUILabel(clients[i].label, OFX_UI_FONT_SMALL));
+    //    gui->addTextInput(clients[i].label + "_hostname", clients[i].hostname);
         
         //gui->add2DPad("Input position", ofVec3f(0, inputWidth), ofVec3f(0, inputHeight), clients[i].inputPos);
-    }
+    //}
     
     gui->autoSizeToFitWidgets();
     
@@ -82,7 +87,7 @@ void testApp::guiEvent(ofxUIEventArgs &e)
      green = slider->getScaledValue();
      }*/
     
-    if(name.find("hostname" > 0))
+    /*if(name.find("hostname" > 0))
     {
         for(int i=0; i<clients.size();i++) {
             
@@ -108,7 +113,9 @@ void testApp::guiEvent(ofxUIEventArgs &e)
             }
             
         }
-    }
+    }*/
+    
+    
     
 }
 
@@ -119,7 +126,7 @@ void testApp::addClient() {
     
     Client c;
     
-    c.fboOut.allocate(c.width, c.height);
+    //c.fboOut.allocate(c.width, c.height);
     c.texture.allocate(c.width, c.height, GL_RGB);
     c.colors.assign(c.height, ofColor(255));
     
@@ -127,8 +134,13 @@ void testApp::addClient() {
     
     c.osc = new ofxOscSender();
     
+    
     c.label = "leaf" + ofToString(index+1);
     c.hostname = c.label + ".local";
+    
+    if(index == 1) {
+        c.hostname = "127.0.0.1";
+    }
     
     c.osc->setup(c.hostname, c.port);
     clients.push_back(c);
@@ -158,7 +170,7 @@ void Client::update(string method) {
         // 50 - 80 FPS
         
         for(int i = 0; i < height; i++) {
-            colors[i] = pixels.getColor(1, i);
+            colors[i] = pixels.getColor(0, i);
             
         }
         
@@ -192,9 +204,7 @@ void Client::update(string method) {
                 m.addIntArg(colors[i].b); // yes this is reversed
                 m.addIntArg(colors[i].g);
             }
-            
-            cout<<ofToString(hostname)<<ofToString(m.getRemoteIp())<<endl;
-            
+                        
             osc->sendMessage(m);
             
         } else if(method == "compressed") {
@@ -238,7 +248,7 @@ void testApp::update(){
             for(int i=0; i<clients.size(); i++) {
                 if(clients[i].label == label) {
                     if(status > 0) {
-                        clients[i].connected == true;
+                        clients[i].connected = true;
                     }
                 }
             }
@@ -295,15 +305,17 @@ void testApp::draw(){
         ofRect(clients[i].inputPos.x, clients[i].inputPos.y, clients[i].width, clients[i].height);
         ofFill();
         
-        clients[i].fboOut.begin();
+        fboPixelTransfer.begin();
         
         ofBackground(0);
 
         controlTexture.drawSubsection(0, 0, clients[i].width, clients[i].height,
-                                      clients[i].inputPos.x, clients[i].inputPos.y);
+                                      clients[i].inputPos.x, clients[i].inputPos.y+2);
         
-        clients[i].fboOut.end();
-        clients[i].texture = clients[i].fboOut.getTextureReference();
+        fboPixelTransfer.end();
+        fboPixelTransfer.getTextureReference().readToPixels(clients[i].pixels);
+        clients[i].texture.loadData(clients[i].pixels);
+        
     }
     
     ofPopMatrix();
@@ -326,10 +338,35 @@ void testApp::draw(){
         for(int c=0; c<clients[i].colors.size(); c++) {
             
             ofSetColor(clients[i].colors[c]);
-            
             ofRect(i*10+4, 10+400+c, 6, 1);
         }
         
+        
+        
+    }
+    
+    ofSetColor(255, 255, 255);
+    for(int i=0; i<clients.size(); i++) {
+        
+        ofPushMatrix();
+        
+        int column = i/10;
+        int row = i - (column*10);
+        
+        
+        
+        ofTranslate(400 + (i/10 * 200), row*100);
+        
+        ofDrawBitmapString(clients[i].label, 10,10);
+        
+        ofDrawBitmapString("Hostname:" + clients[i].hostname, 20,30);
+        
+        ofDrawBitmapString("Connected:" + ofToString(clients[i].connected), 20,50);
+        
+        ofDrawBitmapString("Enabled:" +   ofToString(clients[i].enabled), 20,70);
+        
+        ofPopMatrix();
+    
     }
     
     
@@ -346,6 +383,8 @@ void testApp::draw(){
 }
 
 void testApp::exit(){
+        
+    
     
     gui->saveSettings("GUI/guiSettings.xml");
     delete gui;

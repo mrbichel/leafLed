@@ -46,4 +46,7 @@ class testApp : public ofBaseApp, public ofThread{
     
     ofTexture outTexture;
     
+    float position;
+    
+    
 };

@@ -8,50 +8,21 @@ from fabric.decorators import roles
 
 env.password = "etunaz20"
 env.roledefs = {
-    'leader': ['pi@leaf1.local', ],
+    'leader': ['pi@leaf26.local', ],
     'all': [
+     'pi@leaf26.local',
         'pi@leaf1.local',
         'pi@leaf2.local',
         'pi@leaf3.local',
-        #'pi@leaf4.local',
-        #'pi@leaf5.local',
-        #'pi@leaf6.local',
-        #'pi@leaf7.local',
-        #'pi@leaf8.local',
-        #'pi@leaf9.local',
+        'pi@leaf4.local',
+        'pi@leaf5.local',
+        'pi@leaf6.local',
+        'pi@leaf7.local',
+        'pi@leaf8.local',
+        'pi@leaf9.local',
         'pi@leaf10.local',
         'pi@leaf11.local',
         'pi@leaf12.local',
-        #'pi@leaf13.local',
-        #'pi@leaf14.local',
-        #'pi@leaf15.local',
-        #'pi@leaf16.local',
-        #'pi@leaf17.local',
-        #'pi@leaf18.local',
-        #'pi@leaf19.local',
-        'pi@leaf20.local',
-        #'pi@leaf21.local',
-        #'pi@leaf22.local',
-        #'pi@leaf23.local',
-        #'pi@leaf24.local',
-        #'pi@leaf25.local',
-        #'pi@leaf26.local',
-        #'pi@leaf27.local',
-        #'pi@leaf28.local',
-        #'pi@leaf29.local',
-        #'pi@leaf30.local',
-    ],
-    'old_password': [
-        'pi@leaf21.local',
-        'pi@leaf22.local',
-        'pi@leaf23.local',
-        'pi@leaf24.local',
-        'pi@leaf25.local',
-        'pi@leaf26.local',
-        'pi@leaf27.local',
-        'pi@leaf28.local',
-        'pi@leaf29.local',
-        'pi@leaf30.local',
         'pi@leaf13.local',
         'pi@leaf14.local',
         'pi@leaf15.local',
@@ -59,11 +30,32 @@ env.roledefs = {
         'pi@leaf17.local',
         'pi@leaf18.local',
         'pi@leaf19.local',
+        'pi@leaf20.local',
+        'pi@leaf21.local',
+        'pi@leaf22.local',
+        'pi@leaf23.local',
+        'pi@leaf24.local',
+        'pi@leaf25.local',
+       
+        'pi@leaf27.local',
+        'pi@leaf28.local',
+        'pi@leaf29.local',
+        'pi@leaf30.local',
+    ],
+    
+    'old': [
+        'pi@leaf21.local',
+        'pi@leaf23.local',
+        'pi@leaf26.local',
+        'pi@leaf28.local',
+        'pi@leaf30.local',
+        'pi@leaf15.local',
+        'pi@leaf16.local',
+        'pi@leaf17.local',
         'pi@leaf4.local',
         'pi@leaf5.local',
         'pi@leaf6.local',
         'pi@leaf7.local',
-        'pi@leaf8.local',
         'pi@leaf9.local',
     ]
 }
@@ -71,7 +63,6 @@ env.roledefs = {
 env.skip_bad_hosts=True
 addons_dir = '/home/pi/openFrameworks/addons'
 code_dir = '/home/pi/openFrameworks/apps/leafLed/LedClient'
-
 
 def compile_deploy():
     compile()
@@ -95,7 +86,6 @@ def test_run():
 #with lcd('../../addons/'):
 #    with cd(addons_dir):
 #        put('ofxLPD8806/src/*', 'ofxLPD8806/src/')
-            
             
 @roles('leader')
 def update_addons():
@@ -130,7 +120,11 @@ def deploy_all():
 def start_background(): # not working
     #run("dtach sudo make run") 
     # _runbg('sudo make run');
-    run("screen -d -m sudo make run; sleep 1") 
+    with settings(warn_only=True):
+        run('sudo killall -r LedClient') # stop it first  
+        #run('screen -S leaf -X quit')
+        
+    run("screen -d -m -S leaf sudo make run; sleep 1") 
     #run("nohup sudo make run & sleep 5; exit 0") 
     #run("nohup sudo make run & sleep 5; exit 0 >& /dev/null < /dev/null &") 
 
@@ -148,18 +142,24 @@ def start():
 def start_all():
     start()
 
-@roles('all')
-def reboot_all():
-    run("sudo reboot")
+### Problem with theese, does not broadcast bonjour on startup - and do not turn of properly
+#@roles('all')  
+#def reboot_all():
+#    run("sudo reboot")
+#
+#@roles('all')
+#def shutdown_all():
+#    run("sudo shutdown -r now")
+
 
 @roles('all')
 def list():
     run("hostname")
 
-@roles('old_password')
+@roles('old')
 def set_passwords():
     run('passwd pi')
 
-@roles('all')
+@roles('old')
 def install_screen():
     run("sudo apt-get install screen")

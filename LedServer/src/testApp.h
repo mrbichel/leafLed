@@ -9,7 +9,7 @@
 
 struct Client {
     string hostname = "127.0.0.1";
-    int port = 2838;
+    int port = 7010;
     
     string label = "leaf.local"; // For remembering who is who
     ofPoint inputPos; // For the mapping
@@ -22,12 +22,12 @@ struct Client {
     ofFbo fboOut;
     
     int width = 1;
-    int height = 121;
+    int height = 120;
     
     ofxOscSender * osc;
     
     bool connected = false;
-    bool enabled = true;
+    bool enabled = false;
     
     void setup();
     void update(string method);
@@ -79,5 +79,7 @@ class testApp : public ofBaseApp{
 	ofTexture controlTexture;
 	ofxSyphonClient syphonIn;
     ofFbo fboIn;
+    ofFbo fboPixelTransfer;
+    ofPixels controlPixels;
 	
 };

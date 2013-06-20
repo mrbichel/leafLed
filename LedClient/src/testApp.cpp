@@ -4,8 +4,11 @@
 void testApp::setup(){
 	led = NULL;
 	ofxXmlSettings xml;
-	int port = 2838;
-
+    
+	int port = 7010;
+    sender.setup("swing.local", 7020);
+    
+    ofHideCursor();
     ofSetFrameRate(60);
     
 	receiver.setup(port);
@@ -17,7 +20,7 @@ void testApp::setup(){
 		ofLogNotice()<<"connected to SPI";
 	}
     
-    refreshRate = 60; // How many times persecond to update all LEDS in strip    
+    //refreshRate = 60; // How many times persecond to update all LEDS in strip
     autoModeDelay = 10000; // Go in auto mode after 16 seconds
     autoMode = true;
     
@@ -30,12 +33,12 @@ void testApp::setup(){
     
 	ofLogNotice("OSC") << " Set LED length as " << numLED;
     
-    sender.setup("0.0.0.0", 7777);
+    /*sender.setup("0.0.0.0", 7777);
     ofxOscMessage m;
     m.setAddress("/status");
     m.addIntArg(2);
     m.addStringArg("Ready to receive data.");
-    sender.sendMessage(m);
+    sender.sendMessage(m);*/
         
 }
 
@@ -77,19 +80,14 @@ void testApp::update(){
         if ( m.getAddress() == "/l" ){ // Set a single led
             
             ledData[m.getArgAsInt32(0)].set(m.getArgAsInt32(1), m.getArgAsInt32(2), m.getArgAsInt32(3), 255);
-            
-            ofLogNotice("OSC") << "l: " << ofToString(m.getArgAsInt32(0)) << " l - r:" << ofToString(m.getArgAsInt32(1)) << "g:" <<ofToString(m.getArgAsInt32(2)) << "b:" << ofToString(m.getArgAsInt32(3))<<endl;
-            
+                        
             lastLedCmdTime = ofGetElapsedTimeMillis();
             autoMode = false;
             
         } else if ( m.getAddress() == "/p" ) { // Set all
             
-            ofLogNotice("got msg");
-            if( ofGetElapsedTimeMillis() - lastLedCmdTime > (refreshRate/60 * 1000) ) {
-                
-                ofLogNotice("OSC") << "Got packed. First color: " << ofToString(m.getArgAsInt32(0)) << " r:" << ofToString(m.getArgAsInt32(1)) << "g:" << ofToString(m.getArgAsInt32(2))<<endl;
-                
+            if( ofGetElapsedTimeMillis() - lastLedCmdTime > 6 ) {
+                                
                 int led = 0;
                 for(int i=0; i<numLED; i++) {
                     ledData[i].set(m.getArgAsInt32(led),m.getArgAsInt32(led+1),m.getArgAsInt32(led+2));
@@ -105,7 +103,7 @@ void testApp::update(){
        
         } else if ( m.getAddress() == "/status" ) {
             
-            sender.setup(m.getRemoteIp(), m.getRemotePort());
+            
             ofxOscMessage r;
             r.setAddress("/status");
             r.addStringArg(m.getArgAsString(0));
@@ -131,7 +129,6 @@ void testApp::update(){
         } else if ( m.getAddress() == "/setLength" ) {
             
             numLED = m.getArgAsInt32(0);
-            
             led = new ofxLEDsLPD8806(numLED);
             ledData.assign(numLED,ofColor());
             
@@ -173,6 +170,26 @@ void testApp::update(){
         autoMode = true;
     }
     
+    
+
+}
+
+//--------------------------------------------------------------
+void testApp::draw(){
+    
+    
+    if( ofGetElapsedTimeMillis() - lastLedCmdTime > autoModeDelay/2 && !autoMode ) {
+        
+        // fade out when not receiving a signal for over half autoModeDelay duration
+        
+        for(int i=0; i<numLED; i++) {
+            ledData[i].set(ledData[i].r * 0.97, ledData[i].g * 0.97, ledData[i].b * 0.97);
+        }
+        
+    }
+    
+    
+    
     if(autoMode) {
         
         
@@ -185,13 +202,16 @@ void testApp::update(){
         
         float fade = ofMap(sin(2*t), -1, 1, 0.5, 1);
         
-        float position = ofMap(sin((ofNoise(t)-1)*t), -1, 1, 0, numLED);
         
+        if(ofGetFrameNum() % 4 == 1) position += 1;
+        if(position > numLED) {
+            position = 0; 
+        }
         
         float blink = ofMap(sin(40*t), -1, 1, 0, 1);
         
         
-        float blinkPhase = ofMap(sin(1.2*t), -1, 1, 0, 1);
+        float blinkPhase = ofMap(sin(0.5*t), -1, 1, 0, 1);
         
         
         //if(blinkPhase > 0.8) {
@@ -201,7 +221,7 @@ void testApp::update(){
         
         for(int i=0; i<numLED; i++) {
             
-            if(blinkPhase > 0.9) {
+            if(blinkPhase > 0.96) {
                 
                 if(blink > 0.9) {
                     ledData[i].set(140, 140, 140);
@@ -210,13 +230,13 @@ void testApp::update(){
                 }
                 
             } else {
-            
-                if(i == floor(position)) {
-                    ledData[i].set(200, 90, 90);
+                
+                if(i == position) {
+                    ledData[i].set(180, 90, 90);
                 } else {
                     ledData[i].set(ledData[i].r * 0.99, ledData[i].g * 0.96, ledData[i].b * 0.96);
                 }
-            
+                
             }
         }
         
@@ -224,36 +244,37 @@ void testApp::update(){
         
     }
     
-
-}
-
-//--------------------------------------------------------------
-void testApp::draw(){
     
     
     //if(ofGetLogLevel() == OF_LOG_VERBOSE) {
-        
+    
         ofBackground(20);
-        int size = ofGetWidth()/numLED;
+        int size = ofGetWidth() / (numLED-1);
         
         for(int i =0 ; i < numLED; i++)
         {
-            ofSetColor(ledData[i]);
+            ofSetColor(ledData[i].r, ledData[i].b, ledData[i].g);
             ofFill();
             ofRect(i * size, 0, size, ofGetHeight()/2);
         }
     
     
     ofSetColor(255);
+    ofPushMatrix();
+    
     ofDrawBitmapString("Framerate: " + ofToString(ofGetFrameRate()), 20, ofGetHeight()-20);
     
     
     ofDrawBitmapString("autoMode: " + ofToString(autoMode), 20, ofGetHeight()-40);
     
     
-    ofDrawBitmapString("lastLedCmdTime: " + ofToString(lastLedCmdTime), 20, ofGetHeight()-60);
+    ofDrawBitmapString("lastLedCmdTime millis ago: " + ofToString((ofGetElapsedTimeMillis() - lastLedCmdTime) ), 20, ofGetHeight()-60);
+    ofPopMatrix();
         
     //}
+    
+    
+    
     
     
 }
