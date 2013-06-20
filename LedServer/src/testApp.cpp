@@ -6,16 +6,14 @@ void testApp::setup(){
     numClients = 29;
     
     ofEnableAlphaBlending();
-    ofSetFrameRate(60);
+    ofSetFrameRate(400);
     
     // TODO add gui for configuring nodes
     
 	ofSetLogLevel(OF_LOG_VERBOSE);
     
     oscReceiver.setup(7020);
-	
-	//ofSetFrameRate(110);
-    
+	    
     // syphon input
     syphonIn.setup();
     //syphonIn.setApplicationName("MadMapper");
@@ -142,7 +140,7 @@ void testApp::addClient() {
         c.hostname = "127.0.0.1";
     }
     
-    c.osc->setup(c.hostname, c.port);
+    //c.osc->setup(c.hostname, c.port);
     clients.push_back(c);
         
     clients[index].inputPos.set(1+ index*5, 20);
@@ -158,7 +156,6 @@ void Client::update(string method) {
     
     if(connected && enabled) {
     
-        texture.readToPixels(pixels);
         
         // Performance notes
         // raw pack and send: 16 FPS
@@ -168,11 +165,6 @@ void Client::update(string method) {
         
         // Packed
         // 50 - 80 FPS
-        
-        for(int i = 0; i < height; i++) {
-            colors[i] = pixels.getColor(0, i);
-            
-        }
         
         if(method == "raw") {
             // Send each pixel as a OSC message
@@ -315,8 +307,15 @@ void testApp::draw(){
         fboPixelTransfer.end();
         fboPixelTransfer.getTextureReference().readToPixels(clients[i].pixels);
         clients[i].texture.loadData(clients[i].pixels);
+     
+        for(int p = 0; p < clients[i].height; p++) {
+            clients[i].colors[p] = clients[i].pixels.getColor(0, p);
+            
+        }
         
     }
+    
+    
     
     ofPopMatrix();
     

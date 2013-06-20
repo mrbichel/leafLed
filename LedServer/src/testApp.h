@@ -56,7 +56,7 @@ class testApp : public ofBaseApp{
     int numClients = 5;
     
     int inputWidth = 202;
-    int inputHeight = 260;
+    int inputHeight = 160;
     
     string updateMethod = "packed";
     
