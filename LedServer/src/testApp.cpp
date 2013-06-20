@@ -259,28 +259,24 @@ void testApp::update(){
 
 //--------------------------------------------------------------
 void testApp::draw(){
-    
+        
     ofEnableAlphaBlending();
-    
     ofSetColor(255);
     ofBackground(30);
     
+    // Get input pixels from syphon through an fbo
     fboIn.begin();
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+        ofBackground(0);
+            syphonIn.draw(0, 0, fboIn.getWidth(), fboIn.getHeight());
     
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-    
-    ofBackground(0);
-    
-    
-    syphonIn.draw(0, 0, fboIn.getWidth(), fboIn.getHeight());
-    glDisable(GL_BLEND);
-    
-    ofClearAlpha();
-
+        glDisable(GL_BLEND);
+        ofClearAlpha();
     fboIn.end();
-    
     controlTexture = fboIn.getTextureReference();
+    ofDisableAlphaBlending();
+    
     
     ofPushMatrix();
     ofTranslate(400, 20);
@@ -324,8 +320,7 @@ void testApp::draw(){
     for(int i=0; i<clients.size(); i++) {
         
         
-        //clients
-        
+        // clients debug draw  - draw from input texture instead.
         for(int c=0; c<clients[i].colors.size(); c++) {
             
             ofSetColor(clients[i].colors[c]);
