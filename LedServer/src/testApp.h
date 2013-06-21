@@ -24,6 +24,8 @@ struct Client {
     bool connected = false;
     bool enabled = false;
     
+    bool testBlink = false;
+    
     void setup();
     void update(string method);
     void exit();
@@ -75,6 +77,9 @@ class testApp : public ofBaseApp{
     
     bool monitorInput;
     bool monitorOutput;
+    bool connect;
+    bool viewInfo;
     
+    bool testBlink;
 	
 };

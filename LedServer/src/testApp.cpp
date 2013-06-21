@@ -3,10 +3,10 @@
 
 void testApp::setup(){
     
-    numClients = 29;
+    numClients = 30;
     
     ofEnableAlphaBlending();
-    ofSetFrameRate(400);
+    ofSetFrameRate(60);
     
     // TODO add gui for configuring nodes
     
@@ -40,39 +40,73 @@ void testApp::setup(){
     gui->setScrollableDirections(false, true);
     
 	gui->addWidgetDown(new ofxUILabel("LeafLED", OFX_UI_FONT_LARGE));
+    gui->addSpacer(length, 2);
+    
+    gui->addWidgetDown(new ofxUIFPSSlider("fps", length, 10));
     
     gui->addSpacer(length, 2);
+    
+    gui->addWidgetDown(new ofxUIButton("Enable all", true, 10, 10));
+    gui->addWidgetDown(new ofxUIToggle("Monitor input",  &monitorInput, 10, 10));
+    gui->addWidgetDown(new ofxUIToggle("Monitor output", &monitorOutput, 10, 10));
+    gui->addWidgetDown(new ofxUIToggle("View info", &viewInfo, 10, 10));
+    
     //gui->addWidgetDown(new ofxUILabel("Settings", OFX_UI_FONT_MEDIUM));
     //gui->addWidgetDown(new ofxUILabel("Update method", OFX_UI_FONT_MEDIUM));
     //gui->addWidgetDown(new ofxUILabel("Performance", OFX_UI_FONT_MEDIUM));
     
-    
     //gui->addWidgetDown(new ofxUILabel("Leafs - Client config", OFX_UI_FONT_MEDIUM));
-    //gui->addSpacer(length, 2);
+    gui->addSpacer(length, 2);
     
-    //gui->setWidgetFontSize(OFX_UI_FONT_SMALL);
-    
-    //for(int i=0; i<numClients; i++) {
+    gui->setWidgetFontSize(OFX_UI_FONT_SMALL);
+    for(int i=0; i<numClients; i++) {
         
-    //    gui->addWidgetDown(new ofxUILabel(clients[i].label, OFX_UI_FONT_SMALL));
-    //    gui->addTextInput(clients[i].label + "_hostname", clients[i].hostname);
+        gui->addWidgetDown(new ofxUILabel(clients[i].label, OFX_UI_FONT_SMALL));
+        gui->addWidgetDown(new ofxUIToggle("Enable", &clients[i].enabled, 10, 10))->setID(i);
+        gui->addWidgetRight(new ofxUIToggle("Connected", &clients[i].connected, 10, 10))->setID(i);
+        
+        
+        gui->addWidgetRight(new ofxUIToggle("Blink", &clients[i].testBlink, 10, 10))->setID(i);
+        
+        gui->addSpacer(length, 2);
+        //new ofxUIButton(
+        //gui->addTextInput(clients[i].label + "_hostname", clients[i].hostname)->set;
         
         //gui->add2DPad("Input position", ofVec3f(0, inputWidth), ofVec3f(0, inputHeight), clients[i].inputPos);
-    //}
+    }
     
     gui->autoSizeToFitWidgets();
-    
     ofAddListener(gui->newGUIEvent,this,&testApp::guiEvent);
-    gui->loadSettings("GUI/guiSettings.xml");
-    
+    gui->loadSettings("GUI/guiSettings.xml");    
 }
 
-void testApp::guiEvent(ofxUIEventArgs &e)
-{
-	string name = e.widget->getName();
+void testApp::guiEvent(ofxUIEventArgs &e) {
+    
 	int kind = e.widget->getKind();
-	
-    cout << "event from " << name << endl;
+    
+    if(e.widget->getName() == "Enable all") {
+        
+        for(int i=0; i<numClients; i++) {
+            clients[i].osc->setup(clients[i].hostname, clients[i].port);
+            clients[i].enabled = true;
+        }
+        
+    }
+    
+    int id = e.widget->getID();
+    
+    if(e.widget->getName() == "Enable") {
+        
+        ofxUIToggle *toggle = (ofxUIToggle *) e.widget;
+        
+        clients[id].enabled = toggle->getValue();
+        if(clients[id].enabled) {
+            clients[id].osc->setup(clients[id].hostname, clients[id].port);
+        } else {
+            clients[id].connected = false;
+        }
+    }
+    
     
 	/*if(name == "RED")
      {
@@ -117,32 +151,24 @@ void testApp::guiEvent(ofxUIEventArgs &e)
     
 }
 
-
 void testApp::addClient() {
     
     int index = clients.size();
     
     Client c;
     
-    //c.fboOut.allocate(c.width, c.height);
-    //c.texture.allocate(c.width, c.height, GL_RGB);
     c.colors.assign(c.height, ofColor(255));
-    
-    //c.hostname = "leaf"+ofToString(i)+".local";
-    
     c.osc = new ofxOscSender();
-    
     
     c.label = "leaf" + ofToString(index+1);
     c.hostname = c.label + ".local";
     
-    if(index == 1) {
+    /*if(index == 1) {
         c.hostname = "127.0.0.1";
-    }
+    }*/
     
     //c.osc->setup(c.hostname, c.port);
     clients.push_back(c);
-        
     clients[index].inputPos.set(1+ index*5, 20);
     
 }
@@ -155,7 +181,7 @@ void Client::update(string method) {
     //m.setRemoteEndpoint(hostname, port);    
     
     if(connected && enabled) {
-    
+        
         
         // Performance notes
         // raw pack and send: 16 FPS
@@ -290,7 +316,9 @@ void testApp::draw(){
     for(int i=0; i<clients.size(); i++) {
         
         ofNoFill();
-        //ofRect(clients[i].inputPos.x, clients[i].inputPos.y, clients[i].width+1, clients[i].height);
+        if(viewInfo) {
+            ofRect(clients[i].inputPos.x, clients[i].inputPos.y, clients[i].width+1, clients[i].height);
+        }
         ofFill();
         
         /*fboPixelTransfer.begin();
@@ -303,6 +331,13 @@ void testApp::draw(){
         for(int p = 0; p < clients[i].height; p++) {
             clients[i].colors[p] = controlPixels.getColor(clients[i].inputPos.x, clients[i].inputPos.y+p);
         }
+        
+        if(clients[i].testBlink) {
+            for(int p = 0; p < clients[i].height; p++) {
+                clients[i].colors[p].set(255,0,0);
+            }
+        }
+        
     }
     ofPopMatrix();
 
@@ -310,23 +345,20 @@ void testApp::draw(){
     ofTranslate(620, 20);
     ofFill();
     
-    
-    for(int i=0; i<clients.size(); i++) {
+    if(monitorOutput) {    
+        for(int i=0; i<clients.size(); i++) {
         
-        
-        // clients debug draw  - draw from input texture instead.
-        for(int c=0; c<clients[i].colors.size(); c++) {
+            // clients debug draw  - draw from input texture instead.
+            for(int c=0; c<clients[i].colors.size(); c++) {
+                ofSetColor(clients[i].colors[c]);
+                ofRect(i*10+4, 10+c, 6, 1);
+            }
             
-            ofSetColor(clients[i].colors[c]);
-            ofRect(i*10+4, 10+c, 6, 1);
         }
-        
-        
-        
     }
     
     ofSetColor(255, 255, 255);
-    for(int i=0; i<clients.size(); i++) {
+    /*for(int i=0; i<clients.size(); i++) {
         
         ofPushMatrix();
         
@@ -340,16 +372,8 @@ void testApp::draw(){
         ofDrawBitmapString("Enabled:" +   ofToString(clients[i].enabled), 20,70);
         ofPopMatrix();
     
-    }
+    }*/
     
-    
-    ofPopMatrix();
-    
-    ofPushMatrix();
-    ofTranslate(400, 500);
-    ofSetColor(255);
-    ofDrawBitmapString("LED Server", 10, 20);
-    ofDrawBitmapString("Framerate: " + ofToString(ofGetFrameRate()), 10, 60);
     
     ofPopMatrix();
     
@@ -357,8 +381,6 @@ void testApp::draw(){
 
 void testApp::exit(){
         
-    
-    
     gui->saveSettings("GUI/guiSettings.xml");
     delete gui;
     

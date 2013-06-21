@@ -8,7 +8,7 @@ from fabric.decorators import roles
 
 env.password = "etunaz20"
 env.roledefs = {
-    'leader': ['pi@leaf26.local', ],
+    'leader': ['pi@leaf1.local', ],
     'all': [
      'pi@leaf26.local',
         'pi@leaf1.local',
@@ -35,8 +35,7 @@ env.roledefs = {
         'pi@leaf22.local',
         'pi@leaf23.local',
         'pi@leaf24.local',
-        'pi@leaf25.local',
-       
+        'pi@leaf25.local',  
         'pi@leaf27.local',
         'pi@leaf28.local',
         'pi@leaf29.local',
@@ -46,17 +45,9 @@ env.roledefs = {
     'old': [
         'pi@leaf21.local',
         'pi@leaf23.local',
-        'pi@leaf26.local',
         'pi@leaf28.local',
         'pi@leaf30.local',
-        'pi@leaf15.local',
-        'pi@leaf16.local',
         'pi@leaf17.local',
-        'pi@leaf4.local',
-        'pi@leaf5.local',
-        'pi@leaf6.local',
-        'pi@leaf7.local',
-        'pi@leaf9.local',
     ]
 }
 
@@ -108,14 +99,18 @@ def kill_all():
     with settings(warn_only=True):
         run('sudo killall -r LedClient') # stop it first
 
-@roles('all')
-def deploy_all():
+
+def deploy():
     with cd(code_dir):  
         with lcd('LedClient'):
             run('rm bin/LedClient')
             put('bin/LedClient', 'bin')
             run('chmod a+x ./bin/LedClient')
         start_background()
+
+@roles('all')
+def deploy_all():
+    deploy()
 
 def start_background(): # not working
     #run("dtach sudo make run") 
