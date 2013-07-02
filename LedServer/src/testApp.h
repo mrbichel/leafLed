@@ -57,7 +57,7 @@ class testApp : public ofBaseApp{
     string updateMethod = "packed";
     
     
-    void addClient();
+    void addClient(string hostname);
     
     ofxUIScrollableCanvas *gui;
 	void guiEvent(ofxUIEventArgs &e);

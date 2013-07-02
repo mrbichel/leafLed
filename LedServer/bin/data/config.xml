@@ -1,90 +1,110 @@
-<DATA>
-    <SERIAL>
-        <NAME>/dev/tty.usbserial</NAME><!--Mac osx-->
-        <!--/dev/ttyUSB0 for linux--> 
-        <BAUDRATE>9600</BAUDRATE>
-    </SERIAL>
     <DEVICE>
-        <HOST>127.0.0.1</HOST>
-        <PORT>2838</PORT>
-        <LENGTH>80</LENGTH>
+        <HOST>leaf7.local</HOST>
     </DEVICE>
      <DEVICE>
-        <HOST>192.168.6.83</HOST>
-        <PORT>2838</PORT>
-        <LENGTH>80</LENGTH>
+        <HOST>leaf15.local</HOST>
     </DEVICE>
     <DEVICE>
-        <HOST>192.168.6.86</HOST>
-        <PORT>2838</PORT>
-        <LENGTH>80</LENGTH>
+        <HOST>leaf30.local</HOST>
+    </DEVICE>
+    
+    <DEVICE>
+        <HOST>leaf3.local</HOST>
+    </DEVICE>
+    
+    <DEVICE>
+        <HOST>leaf10.local</HOST>
+    </DEVICE>
+    
+    <DEVICE>
+        <HOST>leaf6.local</HOST>
+    </DEVICE>
+
+
+    <DEVICE>
+        <HOST>leaf28.local</HOST>
+    </DEVICE>
+    
+    <DEVICE>
+        <HOST>leaf13.local</HOST>
+    </DEVICE>
+    
+    <DEVICE>
+        <HOST>leaf27.local</HOST>
+    </DEVICE>
+    
+    <DEVICE>
+        <HOST>leaf8.local</HOST>
+    </DEVICE>
+    
+    <DEVICE>
+        <HOST>leaf2.local</HOST>
+    </DEVICE>
+    
+    <DEVICE>
+        <HOST>leaf17.local</HOST>
+    </DEVICE>
+    
+    <DEVICE>
+        <HOST>leaf25.local</HOST>
+    </DEVICE>
+    
+    <DEVICE>
+        <HOST>leaf19.local</HOST>
+    </DEVICE>
+    
+    <DEVICE>
+        <HOST>leaf14.local</HOST>
+    </DEVICE>
+    
+    <DEVICE>
+        <HOST>leaf5.local</HOST>
+    </DEVICE>
+    
+    <DEVICE>
+        <HOST>leaf24.local</HOST>
+    </DEVICE>
+    
+    <DEVICE>
+        <HOST>leaf11.local</HOST>
+    </DEVICE>
+    
+    <DEVICE>
+        <HOST>leaf1.local</HOST>
+    </DEVICE>
+    
+    <DEVICE>
+        <HOST>leaf12.local</HOST>
+    </DEVICE>
+    
+    <DEVICE>
+        <HOST>leaf22.local</HOST>
+    </DEVICE>
+    
+    <DEVICE>
+        <HOST>leaf29.local</HOST>
+    </DEVICE>
+    
+    <DEVICE>
+        <HOST>leaf18.local</HOST>
+    </DEVICE>
+    
+    <DEVICE>
+        <HOST>leaf26.local</HOST>
+    </DEVICE>
+    
+    <DEVICE>
+        <HOST>leaf16.local</HOST>
+    </DEVICE>
+    
+    <DEVICE>
+        <HOST>leaf4.local</HOST>
     </DEVICE>
     <DEVICE>
-        <HOST>192.168.6.85</HOST>
-        <PORT>2838</PORT>
-        <LENGTH>80</LENGTH>
-    </DEVICE><!--
-    <DEVICE>
-        <HOST>127.0.0.1</HOST>
-        <PORT>2838</PORT>
+        <HOST>leaf21.local</HOST>
     </DEVICE>
+    
     <DEVICE>
-        <HOST>127.0.0.1</HOST>
-        <PORT>2838</PORT>
+        <HOST>leaf9.local</HOST>
     </DEVICE>
-    <DEVICE>
-        <HOST>127.0.0.1</HOST>
-        <PORT>2838</PORT>
-    </DEVICE> -->
-    <FRAMERATE>12</FRAMERATE>
-    <CUES>
-        <CUE>
-            <FILE>./rainbow2/</FILE>
-            <TRANSITION_DURATION>5</TRANSITION_DURATION>
-            <EASING>0</EASING>
-            <DEVICES>
-                <ID>0</ID>
-                 <ID>1</ID>
-                 <ID>2</ID>
-                <!-- <ID>1</ID>
-                <ID>2</ID>
-                <ID>3</ID>
-                <ID>4</ID> -->
-            </DEVICES>
-            <DURATION>30</DURATION>
-            <LOOP>0</LOOP>
-        </CUE>
-        <CUE>
-            <!--LOOP-->
-            <FILE>./rainbow/</FILE>
-            <TRANSITION_DURATION>1</TRANSITION_DURATION>
-            <EASING>0</EASING>
-            <DEVICES>
-                <ID>0</ID>
-                <ID>1</ID>
-                <ID>2</ID>
-            </DEVICES>
-            <DURATION>2</DURATION>
-            <LOOP>1</LOOP>
-        </CUE>
-        <CUE>
-            <!--NO LOOP-->
-            <FILE>./rainbow/</FILE>
-            <TRANSITION_DURATION>1</TRANSITION_DURATION>
-            <EASING>0</EASING>
-            <DEVICES>
-                <ID>0</ID>
-                <ID>1</ID>
-                <ID>2</ID>
-            </DEVICES>
-            <DURATION>2</DURATION>
-            <LOOP>0</LOOP>
-        </CUE>
-        <CUE>
-        </CUE>
-        <CUE>
-        </CUE>
-        <CUE>
-        </CUE>
-    </CUES>
-</DATA>
+    

@@ -1,9 +1,7 @@
 #include "testApp.h"
 
-
 void testApp::setup(){
     
-    numClients = 30;
     ofSetFrameRate(60);
     
     // TODO add gui for configuring nodes
@@ -21,9 +19,19 @@ void testApp::setup(){
     
     //fboPixelTransfer.allocate(1, 120);
     // Setup all clients
-    for(int i=0; i<numClients; i++) {
-        addClient();
+    
+    xml.loadFile("config.xml");
+    
+    numClients = xml.getNumTags("DEVICE");
+    
+    if(numClients > 0){
+        for(int i = 0; i < numClients; i++){
+            string hostname = xml.getValue("DEVICE:HOST", "localhost", i);
+            addClient(hostname);
+        }
     }
+    
+    cout<<numClients<<endl;
     
     float dim = 16;
 	float xInit = OFX_UI_GLOBAL_WIDGET_SPACING;
@@ -51,16 +59,16 @@ void testApp::setup(){
     gui->setWidgetFontSize(OFX_UI_FONT_SMALL);
     for(int i=0; i<numClients; i++) {
         gui->addWidgetDown(new ofxUILabel("Unit - " + ofToString(i+1), OFX_UI_FONT_SMALL));
-        gui->addTextInput("Hostname", clients[i].hostname)->setID(i);
+        //gui->addTextInput("Hostname", clients[i].hostname)->setID(i);
         gui->addWidgetDown(new ofxUIToggle("Enable", &clients[i].enabled, 10, 10))->setID(i);
         gui->addWidgetRight(new ofxUIToggle("Connected", &clients[i].connected, 10, 10))->setID(i);
         gui->addWidgetRight(new ofxUIToggle("Test", &clients[i].testBlink, 10, 10))->setID(i);
-        gui->addSpacer(length, 3);        
+        gui->addSpacer(length, 3);          
     }
     
     gui->autoSizeToFitWidgets();
     ofAddListener(gui->newGUIEvent,this,&testApp::guiEvent);
-    gui->loadSettings("GUI/guiSettings.xml");    
+    //gui->loadSettings("GUI/guiSettings.xml");
 }
 
 void testApp::guiEvent(ofxUIEventArgs &e) {
@@ -125,15 +133,11 @@ void testApp::guiEvent(ofxUIEventArgs &e) {
                 cout << output << endl;
                 
             }
-            
         }
     }*/
-    
-    
-    
 }
 
-void testApp::addClient() {
+void testApp::addClient(string hostname) {
     
     int index = clients.size();
     
@@ -143,7 +147,7 @@ void testApp::addClient() {
     c.osc = new ofxOscSender();
     
     c.label = "leaf" + ofToString(index+1);
-    c.hostname = c.label + ".local";
+    c.hostname = hostname;
     
     /*if(index == 1) {
         c.hostname = "127.0.0.1";
@@ -211,7 +215,6 @@ void Client::update(string method) {
             // TODO: send a compressed frame over osc and decompress it on clients
         }
     }
-    
     
     if(!connected && enabled) {
         if(ofGetElapsedTimeMillis() % 100 == 1) {
@@ -347,7 +350,7 @@ void testApp::draw(){
 
 void testApp::exit(){
         
-    gui->saveSettings("GUI/guiSettings.xml");
+    //gui->saveSettings("GUI/guiSettings.xml");
     delete gui;
     
 }

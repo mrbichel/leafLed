@@ -8,6 +8,12 @@ void testApp::setup(){
 	int port = 7010;
     sender.setup("swing.local", 7020);
     
+    char hostnamestr[40];
+    hostname = gethostname(hostnamestr, 40);
+    
+    //number = //(int)ofSplitString(hostname, "leaf")[0];
+    
+    
     ofHideCursor();
     ofSetFrameRate(60);
     
@@ -23,7 +29,6 @@ void testApp::setup(){
     //refreshRate = 60; // How many times persecond to update all LEDS in strip
     autoModeDelay = 10000; // Go in auto mode after 16 seconds
     autoMode = true;
-    
     
 	numLED = 120;
 	led = new ofxLEDsLPD8806(numLED);
@@ -114,6 +119,9 @@ void testApp::update(){
                 r.addIntArg(1);
                 r.addStringArg("All good, alive and listening.");
             }
+            
+            r.addStringArg(hostname);
+            
             sender.sendMessage(r);
             
             
@@ -274,9 +282,6 @@ void testApp::draw(){
     ofPopMatrix();
         
     //}
-    
-    
-    
     
     
 }

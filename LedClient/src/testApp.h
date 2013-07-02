@@ -41,7 +41,10 @@ class testApp : public ofBaseApp, public ofThread{
     
     int autoModeDelay;
     bool autoMode;
-        
+    
+    string hostname;
+    int number;
+    
     vector<ofColor> ledData;//ofPixels ledData;
     
     ofTexture outTexture;
