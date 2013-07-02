@@ -4,27 +4,22 @@
 void testApp::setup(){
     
     numClients = 30;
-    
-    ofEnableAlphaBlending();
     ofSetFrameRate(60);
     
     // TODO add gui for configuring nodes
-    
-	ofSetLogLevel(OF_LOG_VERBOSE);
-    
+	ofSetLogLevel(OF_LOG_WARNING);
     oscReceiver.setup(7020);
-	    
+    
     // syphon input
     syphonIn.setup();
-    //syphonIn.setApplicationName("MadMapper");
-    syphonIn.setApplicationName("Modul8");
+    syphonIn.setApplicationName("MadMapper");
+    //syphonIn.setApplicationName("Modul8");
     syphonIn.setServerName("");
         
     fboIn.allocate(inputWidth, inputHeight);
     controlTexture.allocate(inputWidth, inputHeight, GL_RGB);
     
     //fboPixelTransfer.allocate(1, 120);
-    
     // Setup all clients
     for(int i=0; i<numClients; i++) {
         addClient();
@@ -50,29 +45,17 @@ void testApp::setup(){
     gui->addWidgetDown(new ofxUIToggle("Monitor input",  &monitorInput, 10, 10));
     gui->addWidgetDown(new ofxUIToggle("Monitor output", &monitorOutput, 10, 10));
     gui->addWidgetDown(new ofxUIToggle("View info", &viewInfo, 10, 10));
-    
-    //gui->addWidgetDown(new ofxUILabel("Settings", OFX_UI_FONT_MEDIUM));
-    //gui->addWidgetDown(new ofxUILabel("Update method", OFX_UI_FONT_MEDIUM));
-    //gui->addWidgetDown(new ofxUILabel("Performance", OFX_UI_FONT_MEDIUM));
-    
-    //gui->addWidgetDown(new ofxUILabel("Leafs - Client config", OFX_UI_FONT_MEDIUM));
-    gui->addSpacer(length, 2);
+
+    gui->addSpacer(length, 4);
     
     gui->setWidgetFontSize(OFX_UI_FONT_SMALL);
     for(int i=0; i<numClients; i++) {
-        
-        gui->addWidgetDown(new ofxUILabel(clients[i].label, OFX_UI_FONT_SMALL));
+        gui->addWidgetDown(new ofxUILabel("Unit - " + ofToString(i+1), OFX_UI_FONT_SMALL));
+        gui->addTextInput("Hostname", clients[i].hostname)->setID(i);
         gui->addWidgetDown(new ofxUIToggle("Enable", &clients[i].enabled, 10, 10))->setID(i);
         gui->addWidgetRight(new ofxUIToggle("Connected", &clients[i].connected, 10, 10))->setID(i);
-        
-        
-        gui->addWidgetRight(new ofxUIToggle("Blink", &clients[i].testBlink, 10, 10))->setID(i);
-        
-        gui->addSpacer(length, 2);
-        //new ofxUIButton(
-        //gui->addTextInput(clients[i].label + "_hostname", clients[i].hostname)->set;
-        
-        //gui->add2DPad("Input position", ofVec3f(0, inputWidth), ofVec3f(0, inputHeight), clients[i].inputPos);
+        gui->addWidgetRight(new ofxUIToggle("Test", &clients[i].testBlink, 10, 10))->setID(i);
+        gui->addSpacer(length, 3);        
     }
     
     gui->autoSizeToFitWidgets();
@@ -106,7 +89,6 @@ void testApp::guiEvent(ofxUIEventArgs &e) {
             clients[id].connected = false;
         }
     }
-    
     
 	/*if(name == "RED")
      {
@@ -358,22 +340,6 @@ void testApp::draw(){
     }
     
     ofSetColor(255, 255, 255);
-    /*for(int i=0; i<clients.size(); i++) {
-        
-        ofPushMatrix();
-        
-        int column = i/10;
-        int row = i - (column*10);
-        
-        ofTranslate(400 + (i/10 * 200), row*100);
-        ofDrawBitmapString(clients[i].label, 10,10);
-        ofDrawBitmapString("Hostname:" + clients[i].hostname, 20,30);
-        ofDrawBitmapString("Connected:" + ofToString(clients[i].connected), 20,50);
-        ofDrawBitmapString("Enabled:" +   ofToString(clients[i].enabled), 20,70);
-        ofPopMatrix();
-    
-    }*/
-    
     
     ofPopMatrix();
     

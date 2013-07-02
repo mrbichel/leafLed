@@ -221,7 +221,7 @@ void testApp::draw(){
         
         for(int i=0; i<numLED; i++) {
             
-            if(blinkPhase > 0.96) {
+            /*if(blinkPhase > 0.96) {
                 
                 if(blink > 0.9) {
                     ledData[i].set(140, 140, 140);
@@ -229,15 +229,17 @@ void testApp::draw(){
                     ledData[i].set(ledData[i].r * 0.6, ledData[i].g * 0.6, ledData[i].b * 0.6);
                 }
                 
-            } else {
+            } else {*/
+            
                 
                 if(i == position) {
-                    ledData[i].set(180, 90, 90);
+                    ledData[i].set(90, 180, 90);
                 } else {
                     ledData[i].set(ledData[i].r * 0.99, ledData[i].g * 0.96, ledData[i].b * 0.96);
                 }
-                
-            }
+            
+            
+            /*}*/
         }
         
         

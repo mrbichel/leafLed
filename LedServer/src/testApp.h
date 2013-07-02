@@ -50,8 +50,7 @@ class testApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
     
     
-    int numClients = 5;
-    
+    int numClients;
     int inputWidth = 202;
     int inputHeight = 160;
     
