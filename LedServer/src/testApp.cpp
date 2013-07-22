@@ -9,6 +9,7 @@ void testApp::setup(){
     oscReceiver.setup(7020);
     
     // syphon input
+    // TODO add select Syphon input
     syphonIn.setup();
     syphonIn.setApplicationName("MadMapper");
     //syphonIn.setApplicationName("Modul8");
@@ -37,7 +38,15 @@ void testApp::setup(){
 	float xInit = OFX_UI_GLOBAL_WIDGET_SPACING;
     float length = 320-xInit;
     
+    /* Adding GUI */
+    
     gui = new ofxUIScrollableCanvas(0,0,length+xInit*2.0,ofGetHeight());
+    
+    // Changing default GUI font to DinPRO Regular
+    
+    gui->setFont("Gui/DINNextLTPro-Regular.ttf");
+    gui->setFontSize(OFX_UI_FONT_LARGE, 24);
+    gui->setColorFill(ofColor(255, 255, 255));
     
     gui->setScrollAreaToScreen();
     gui->setScrollableDirections(false, true);
@@ -55,6 +64,9 @@ void testApp::setup(){
     gui->addWidgetDown(new ofxUIToggle("View info", &viewInfo, 10, 10));
 
     gui->addSpacer(length, 4);
+    
+    // Greying LeafList a little
+    gui->setColorFill(200);
     
     gui->setWidgetFontSize(OFX_UI_FONT_SMALL);
     for(int i=0; i<numClients; i++) {
