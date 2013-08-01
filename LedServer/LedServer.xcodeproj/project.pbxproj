@@ -12,6 +12,7 @@
 		04695FBE1764C6A900A83475 /* ofxSyphonClient.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04695FB41764C6A900A83475 /* ofxSyphonClient.mm */; };
 		04695FBF1764C6A900A83475 /* ofxSyphonServer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 04695FB61764C6A900A83475 /* ofxSyphonServer.mm */; };
 		04695FC41764C6F600A83475 /* Syphon.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 04695FAC1764C6A900A83475 /* Syphon.framework */; };
+		04C1F2AE17AA757900D20EED /* ipState.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04C1F2AC17AA757900D20EED /* ipState.cpp */; };
 		0546d1a38e13bd319cc9755b5ca7e1a0 /* OscReceivedElements.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9bf3aa0d4faa89d0f8a0e545403162be /* OscReceivedElements.cpp */; };
 		1B24457E1712842300F71705 /* ofxAnimatable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1B2445721712842300F71705 /* ofxAnimatable.cpp */; };
 		1B24457F1712842300F71705 /* ofxAnimatableFloat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1B2445741712842300F71705 /* ofxAnimatableFloat.cpp */; };
@@ -150,6 +151,8 @@
 		0469628B176B4AAA00A83475 /* ofxUIWidgetWithLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxUIWidgetWithLabel.h; sourceTree = "<group>"; };
 		04972B4A179D5466003DEF0F /* icon-debug.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = "icon-debug.icns"; sourceTree = "<group>"; };
 		04972B4B179D5466003DEF0F /* icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = icon.icns; sourceTree = "<group>"; };
+		04C1F2AC17AA757900D20EED /* ipState.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ipState.cpp; sourceTree = "<group>"; };
+		04C1F2AD17AA757900D20EED /* ipState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ipState.h; sourceTree = "<group>"; };
 		1B2445721712842300F71705 /* ofxAnimatable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxAnimatable.cpp; sourceTree = "<group>"; };
 		1B2445731712842300F71705 /* ofxAnimatable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxAnimatable.h; sourceTree = "<group>"; };
 		1B2445741712842300F71705 /* ofxAnimatableFloat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxAnimatableFloat.cpp; sourceTree = "<group>"; };
@@ -555,6 +558,8 @@
 				E4B69E1D0A3A1BDC003C02F2 /* main.cpp */,
 				E4B69E1E0A3A1BDC003C02F2 /* testApp.cpp */,
 				E4B69E1F0A3A1BDC003C02F2 /* testApp.h */,
+				04C1F2AC17AA757900D20EED /* ipState.cpp */,
+				04C1F2AD17AA757900D20EED /* ipState.h */,
 			);
 			path = src;
 			sourceTree = SOURCE_ROOT;
@@ -740,6 +745,7 @@
 				04695FBD1764C6A900A83475 /* SyphonNameboundClient.m in Sources */,
 				04695FBE1764C6A900A83475 /* ofxSyphonClient.mm in Sources */,
 				04695FBF1764C6A900A83475 /* ofxSyphonServer.mm in Sources */,
+				04C1F2AE17AA757900D20EED /* ipState.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

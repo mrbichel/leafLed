@@ -1,4 +1,9 @@
 #include "testApp.h"
+#include <ifaddrs.h>
+#include <arpa/inet.h>
+
+#include <ofURLFileLoader.h>
+
 
 void testApp::setup(){
     
@@ -81,6 +86,7 @@ void testApp::setup(){
     gui->autoSizeToFitWidgets();
     ofAddListener(gui->newGUIEvent,this,&testApp::guiEvent);
     //gui->loadSettings("GUI/guiSettings.xml");
+    
 }
 
 void testApp::guiEvent(ofxUIEventArgs &e) {
@@ -357,6 +363,12 @@ void testApp::draw(){
     ofSetColor(255, 255, 255);
     
     ofPopMatrix();
+    
+    // 1. august - KR - GUI experiments
+    // adding ipState
+    myIpState.x = 400;
+    myIpState.y = 400;
+    myIpState.draw();
     
 }
 
