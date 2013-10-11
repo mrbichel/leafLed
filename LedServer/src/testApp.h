@@ -49,13 +49,14 @@ class testApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
     
+    void updateGui();
+    
     
     int numClients;
-    int inputWidth = 202;
+    int inputWidth  = 202;
     int inputHeight = 160;
     
     string updateMethod = "packed";
-    
     
     void addClient(string hostname);
     
@@ -70,6 +71,12 @@ class testApp : public ofBaseApp{
     vector<Client> clients;
     
     ofxSyphonClient syphonIn;
+    
+    ofxSyphonServerDirectory directory;
+    void directoryUpdated(ofxSyphonServerDirectoryEventArgs &arg);
+    int dirIdx;
+    
+    
     ofFbo fboIn;
 	ofTexture controlTexture;
     ofPixels controlPixels;

@@ -13,6 +13,10 @@ void testApp::setup(){
     syphonIn.setApplicationName("MadMapper");
     //syphonIn.setApplicationName("Modul8");
     syphonIn.setServerName("");
+    
+    directory.setup();
+    ofAddListener(directory.events.directoryUpdated,this,&testApp::directoryUpdated);
+    dirIdx = -1;
         
     fboIn.allocate(inputWidth, inputHeight);
     controlTexture.allocate(inputWidth, inputHeight, GL_RGB);
@@ -58,8 +62,10 @@ void testApp::setup(){
     
     gui->setWidgetFontSize(OFX_UI_FONT_SMALL);
     for(int i=0; i<numClients; i++) {
-        gui->addWidgetDown(new ofxUILabel("Unit - " + ofToString(i+1), OFX_UI_FONT_SMALL));
+        gui->addWidgetDown(new ofxUILabel("Unit - " + ofToString(i+1) + ". Hostname: " + clients[i].hostname, OFX_UI_FONT_SMALL));
+        
         //gui->addTextInput("Hostname", clients[i].hostname)->setID(i);
+        
         gui->addWidgetDown(new ofxUIToggle("Enable", &clients[i].enabled, 10, 10))->setID(i);
         gui->addWidgetRight(new ofxUIToggle("Connected", &clients[i].connected, 10, 10))->setID(i);
         gui->addWidgetRight(new ofxUIToggle("Test", &clients[i].testBlink, 10, 10))->setID(i);
@@ -97,17 +103,6 @@ void testApp::guiEvent(ofxUIEventArgs &e) {
             clients[id].connected = false;
         }
     }
-    
-	/*if(name == "RED")
-     {
-     ofxUISlider *slider = (ofxUISlider *) e.widget;
-     red = slider->getScaledValue();
-     }
-     else if(name == "GREEN")
-     {
-     ofxUISlider *slider = (ofxUISlider *) e.widget;
-     green = slider->getScaledValue();
-     }*/
     
     /*if(name.find("hostname" > 0))
     {
@@ -197,7 +192,7 @@ void Client::update(string method) {
                 osc->sendMessage(m);
                 
             }
-        } else if(method == "packed") { // does this break a size limit
+        } else if(method == "packed") { // does this break at size limit?
             // Send enitre frame as one OSC message
             
             ofxOscMessage m;
@@ -356,9 +351,26 @@ void testApp::exit(){
 }
 
 
+void testApp::directoryUpdated(ofxSyphonServerDirectoryEventArgs &arg)
+{
+    for( auto& server : arg.directory->getServerList() ){ //new c++ auto keyword
+        ofLogNotice("ofxSyphonServerDirectory Updated:: ")<<" Server Name: "<<server.serverName <<" | App Name: "<<server.appName;
+    }
+    dirIdx = 0;
+}
+
 //--------------------------------------------------------------
 void testApp::keyPressed(int key){
 
+    dirIdx++;
+    if(dirIdx > directory.size() - 1)
+        dirIdx = 0;
+    
+    if(directory.isValidIndex(dirIdx)){
+        syphonIn.setServerName(directory.getServerList()[dirIdx].serverName);
+        syphonIn.setApplicationName(directory.getServerList()[dirIdx].appName);
+    }
+    
 }
 
 

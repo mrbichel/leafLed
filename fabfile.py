@@ -25,14 +25,14 @@ env.roledefs = {
         'pi@leaf13.local',
         'pi@leaf14.local',
         'pi@leaf15.local',
-        #'pi@leaf16.local',
-        #'pi@leaf17.local', # 
+        'pi@leaf16.local',
+        'pi@leaf17.local', #
         'pi@leaf18.local',
         'pi@leaf19.local', # boks 23
         'pi@leaf20.local',
         'pi@leaf21.local', 
         'pi@leaf22.local', #
-        #'pi@leaf23.local', # boks 20
+        'pi@leaf23.local', # boks 20
         'pi@leaf24.local',
         'pi@leaf25.local',
         'pi@leaf26.local',  

@@ -1,25 +1,11 @@
-    <DEVICE>
-        <HOST>leaf7.local</HOST>
-    </DEVICE>
+
      <DEVICE>
         <HOST>leaf15.local</HOST>
     </DEVICE>
-    <DEVICE>
-        <HOST>leaf30.local</HOST>
-    </DEVICE>
-    
-    <DEVICE>
-        <HOST>leaf3.local</HOST>
-    </DEVICE>
-    
-    <DEVICE>
-        <HOST>leaf10.local</HOST>
-    </DEVICE>
-    
-    <DEVICE>
-        <HOST>leaf6.local</HOST>
-    </DEVICE>
 
+<DEVICE>
+    <HOST>leaf17.local</HOST>
+</DEVICE>
 
     <DEVICE>
         <HOST>leaf28.local</HOST>
@@ -32,23 +18,13 @@
     <DEVICE>
         <HOST>leaf27.local</HOST>
     </DEVICE>
-    
-    <DEVICE>
-        <HOST>leaf8.local</HOST>
-    </DEVICE>
+
     
     <DEVICE>
         <HOST>leaf2.local</HOST>
     </DEVICE>
     
-    <DEVICE>
-        <HOST>leaf17.local</HOST>
-    </DEVICE>
-    
-    <DEVICE>
-        <HOST>leaf25.local</HOST>
-    </DEVICE>
-    
+
     <DEVICE>
         <HOST>leaf19.local</HOST>
     </DEVICE>
@@ -57,9 +33,7 @@
         <HOST>leaf14.local</HOST>
     </DEVICE>
     
-    <DEVICE>
-        <HOST>leaf5.local</HOST>
-    </DEVICE>
+
     
     <DEVICE>
         <HOST>leaf24.local</HOST>
@@ -69,17 +43,13 @@
         <HOST>leaf11.local</HOST>
     </DEVICE>
     
-    <DEVICE>
-        <HOST>leaf1.local</HOST>
-    </DEVICE>
+
     
     <DEVICE>
         <HOST>leaf12.local</HOST>
     </DEVICE>
     
-    <DEVICE>
-        <HOST>leaf22.local</HOST>
-    </DEVICE>
+
     
     <DEVICE>
         <HOST>leaf29.local</HOST>
@@ -89,13 +59,7 @@
         <HOST>leaf18.local</HOST>
     </DEVICE>
     
-    <DEVICE>
-        <HOST>leaf26.local</HOST>
-    </DEVICE>
-    
-    <DEVICE>
-        <HOST>leaf16.local</HOST>
-    </DEVICE>
+
     
     <DEVICE>
         <HOST>leaf4.local</HOST>
@@ -104,7 +68,5 @@
         <HOST>leaf21.local</HOST>
     </DEVICE>
     
-    <DEVICE>
-        <HOST>leaf9.local</HOST>
-    </DEVICE>
+
     
