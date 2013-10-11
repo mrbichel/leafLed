@@ -1,4 +1,9 @@
 #include "testApp.h"
+#include <ifaddrs.h>
+#include <arpa/inet.h>
+
+#include <ofURLFileLoader.h>
+
 
 void testApp::setup(){
     
@@ -9,6 +14,7 @@ void testApp::setup(){
     oscReceiver.setup(7020);
     
     // syphon input
+    // TODO add select Syphon input
     syphonIn.setup();
     syphonIn.setApplicationName("MadMapper");
     //syphonIn.setApplicationName("Modul8");
@@ -41,7 +47,15 @@ void testApp::setup(){
 	float xInit = OFX_UI_GLOBAL_WIDGET_SPACING;
     float length = 320-xInit;
     
+    /* Adding GUI */
+    
     gui = new ofxUIScrollableCanvas(0,0,length+xInit*2.0,ofGetHeight());
+    
+    // Changing default GUI font to DinPRO Regular
+    
+    gui->setFont("Gui/DINNextLTPro-Regular.ttf");
+    gui->setFontSize(OFX_UI_FONT_LARGE, 24);
+    gui->setColorFill(ofColor(255, 255, 255));
     
     gui->setScrollAreaToScreen();
     gui->setScrollableDirections(false, true);
@@ -60,6 +74,9 @@ void testApp::setup(){
 
     gui->addSpacer(length, 4);
     
+    // Greying LeafList a little
+    gui->setColorFill(200);
+    
     gui->setWidgetFontSize(OFX_UI_FONT_SMALL);
     for(int i=0; i<numClients; i++) {
         gui->addWidgetDown(new ofxUILabel("Unit - " + ofToString(i+1) + ". Hostname: " + clients[i].hostname, OFX_UI_FONT_SMALL));
@@ -75,6 +92,7 @@ void testApp::setup(){
     gui->autoSizeToFitWidgets();
     ofAddListener(gui->newGUIEvent,this,&testApp::guiEvent);
     //gui->loadSettings("GUI/guiSettings.xml");
+    
 }
 
 void testApp::guiEvent(ofxUIEventArgs &e) {
@@ -340,6 +358,12 @@ void testApp::draw(){
     ofSetColor(255, 255, 255);
     
     ofPopMatrix();
+    
+    // 1. august - KR - GUI experiments
+    // adding ipState
+    myIpState.x = 400;
+    myIpState.y = 400;
+    myIpState.draw();
     
 }
 

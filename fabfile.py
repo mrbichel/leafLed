@@ -8,7 +8,7 @@ from fabric.decorators import roles
 
 env.password = "etunaz20"
 env.roledefs = {
-    'leader': ['pi@leaf1.local', ],
+    'leader': ['pi@leaf4.local', ],
     'all': [     
         'pi@leaf1.local',
         'pi@leaf2.local',
