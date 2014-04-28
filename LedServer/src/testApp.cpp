@@ -82,6 +82,10 @@ void testApp::setGui() {
     //gui->addSpacer(length, 2);
     gui->addWidgetDown(new ofxUIToggle("View input overlay",      &viewInfo,      10, 10));
     
+    
+    //Todo: input scale to
+    
+    
     //gui->addLabelButton("Reset", false);
     //gui->addSlider("Input scale", 0.01, 2, &inputScale);
     //gui->addSlider("Input width",  0, 2000, &inputWidth);
@@ -239,9 +243,7 @@ void Client::setup() {
     setGui();
 }
 
-
 void Client::setGui() {
-    
     testApp* app = ((testApp*)ofGetAppPtr());
     
     gui = new ofxUICanvas;
@@ -262,12 +264,15 @@ void Client::setGui() {
     
         gui->addSlider("Position x", 0, app->inputWidth, &inputPos.x);
         gui->addSlider("Position y", 0, app->inputHeight, &inputPos.y);
-        gui->addIntSlider("Length", 1, 600, height);
+        gui->addIntSlider("Length", 1, 600, height); //todo input field exact
+    
         gui->addToggle("Enabled", &enabled);
         
         gui->addToggle("Connected", &connected);
     
         gui->addLabelButton("Remove", false);
+    
+        // todo: rotate
     
     gui->autoSizeToFitWidgets();
     ofAddListener(gui->newGUIEvent,this,&Client::guiEvent);
