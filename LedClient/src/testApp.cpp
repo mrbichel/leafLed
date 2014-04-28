@@ -2,20 +2,30 @@
 
 //--------------------------------------------------------------
 void testApp::setup(){
+    
+    // todo if id in xml set id
+    state = STATE_WAITING;
+    
+    settings.loadFile("settings.xml");
+    clientId = settings.getValue("id", 0);
+    label = settings.getValue("label", "unnamed leafLed");
+    
 	led = NULL;
 	ofxXmlSettings xml;
     
+    helloResponseWait = 1000;
 	int port = 7010;
-    sender.setup("swing.local", 7020);
+    
+    masterHostname = "swing.local";
+    masterPort = 7020;
+    
+    sender.setup(masterHostname, masterPort);
     
     char hostnamestr[40];
     hostname = gethostname(hostnamestr, 40);
     
-    //number = //(int)ofSplitString(hostname, "leaf")[0];
-    
-    
     ofHideCursor();
-    ofSetFrameRate(60);
+    ofSetFrameRate(30);
     
 	receiver.setup(port);
 	ofSetLogLevel(OF_LOG_VERBOSE);
@@ -30,25 +40,19 @@ void testApp::setup(){
     autoModeDelay = 10000; // Go in auto mode after 16 seconds
     autoMode = true;
     
-	numLED = 120;
-	led = new ofxLEDsLPD8806(numLED);
-    ledData.assign(numLED,ofColor(255, 255, 255));
+    width = 1; // todo add support for pixel grids
+	height = 400;
+	led = new ofxLEDsLPD8806(height);
+    ledData.assign(height,ofColor(255, 255, 255));
     
 	startThread(false,false);
+	ofLogNotice() << " Set LED length as " << height;
     
-	ofLogNotice("OSC") << " Set LED length as " << numLED;
-    
-    /*sender.setup("0.0.0.0", 7777);
-    ofxOscMessage m;
-    m.setAddress("/status");
-    m.addIntArg(2);
-    m.addStringArg("Ready to receive data.");
-    sender.sendMessage(m);*/
-        
 }
 
 void testApp::exit()
 {
+    saveSettings();
 	if(led!=NULL)
 	{
         stopThread();
@@ -73,6 +77,7 @@ void testApp::threadedFunction()
 //--------------------------------------------------------------
 void testApp::update(){
 	// check for waiting messages
+    
 	while(receiver.hasWaitingMessages()){
         
         lastCmdTime = ofGetElapsedTimeMillis();
@@ -81,6 +86,7 @@ void testApp::update(){
 		ofxOscMessage m;
                 
 		receiver.getNextMessage(&m);
+
         
         if ( m.getAddress() == "/l" ){ // Set a single led
             
@@ -91,20 +97,30 @@ void testApp::update(){
             
         } else if ( m.getAddress() == "/p" ) { // Set all
             
-            if( ofGetElapsedTimeMillis() - lastLedCmdTime > 6 ) {
+            //if( ofGetElapsedTimeMillis() - lastLedCmdTime > 2 ) {
                                 
-                int led = 0;
-                for(int i=0; i<numLED; i++) {
+                int led = 1;
+                int section = m.getArgAsInt32(0);
+                int start   = section;
+                int end     = start+120;
+                
+                for(int i=start; i<end && i<height; i++) {
                     ledData[i].set(m.getArgAsInt32(led),m.getArgAsInt32(led+1),m.getArgAsInt32(led+2));
                     led +=3;
                 }
                 lastLedCmdTime = ofGetElapsedTimeMillis();
                 
-            }
+            //}
             autoMode = false;
             
         } else if ( m.getAddress() == "/c" ) {
             // Compressed data not yet implemented
+            if( ofGetElapsedTimeMillis() - lastLedCmdTime > 2 ) {
+                
+                lastLedCmdTime = ofGetElapsedTimeMillis();
+            
+            }
+            
        
         } else if ( m.getAddress() == "/status" ) {
             
@@ -135,51 +151,53 @@ void testApp::update(){
             
         
         } else if ( m.getAddress() == "/setLength" ) {
+            height  = m.getArgAsInt32(0);
+            led     = new ofxLEDsLPD8806(height);
+            ledData.assign(height,ofColor());
+            ofLogNotice() << " Set LED length to " << height;
+
+		} else if ( m.getAddress() == "/setId" ) {
             
-            numLED = m.getArgAsInt32(0);
-            led = new ofxLEDsLPD8806(numLED);
-            ledData.assign(numLED,ofColor());
+            clientId = m.getArgAsInt32(0);
+            saveSettings();
+            state = STATE_CONNECTED;
             
+            ofLogNotice() << " Set ID to " << clientId;
+
             
-		} else {
-            
-			// unrecognized message: display on the bottom of the screen
-            
-            if(ofGetLogLevel() == OF_LOG_VERBOSE) {
-                
-                string msg_string;
-                msg_string = m.getAddress();
-                msg_string += ": ";
-                for(int i = 0; i < m.getNumArgs(); i++){
-                    // get the argument type
-                    msg_string += m.getArgTypeName(i);
-                    msg_string += ":";
-                    // display the argument - make sure we get the right type
-                    if(m.getArgType(i) == OFXOSC_TYPE_INT32){
-                        msg_string += ofToString(m.getArgAsInt32(i));
-                    }
-                    else if(m.getArgType(i) == OFXOSC_TYPE_FLOAT){
-                        msg_string += ofToString(m.getArgAsFloat(i));
-                    }
-                    else if(m.getArgType(i) == OFXOSC_TYPE_STRING){
-                        msg_string += m.getArgAsString(i);
-                    }
-                    else{
-                        msg_string += "unknown";
-                    }
-                }
-                ofLogWarning("OSC") << " Unknown osc message " << msg_string;
-            }
-            
-		}
+        }
+        
 	}
     
     if( ofGetElapsedTimeMillis() - lastLedCmdTime > autoModeDelay ) {
         autoMode = true;
+        state = STATE_WAITING;
     }
     
     
+    if(state == STATE_WAITING) {
+        
+        if(ofGetElapsedTimeMillis() - helloTime > helloResponseWait) {
+            helloTime = ofGetElapsedTimeMillis();
+            ofxOscMessage m;
+            
+            m.setAddress("/hello");
+            m.addIntArg(clientId);
+            sender.sendMessage(m);
+        }
+    }
 
+}
+
+void testApp::saveSettings() {
+    
+    settings.setValue("id", clientId);
+    settings.setValue("label", label);
+    settings.setValue("height", height);
+    settings.setValue("width", width);
+    
+    settings.saveFile("settings.xml");
+    
 }
 
 //--------------------------------------------------------------
@@ -189,17 +207,12 @@ void testApp::draw(){
     if( ofGetElapsedTimeMillis() - lastLedCmdTime > autoModeDelay/2 && !autoMode ) {
         
         // fade out when not receiving a signal for over half autoModeDelay duration
-        
-        for(int i=0; i<numLED; i++) {
+        for(int i=0; i<height; i++) {
             ledData[i].set(ledData[i].r * 0.97, ledData[i].g * 0.97, ledData[i].b * 0.97);
         }
-        
     }
     
-    
-    
     if(autoMode) {
-        
         
         // sine function
         // Amplitude * sin( frequency(oscillations pr second) * time in seconds + phase (shift in seconds))
@@ -210,78 +223,66 @@ void testApp::draw(){
         
         float fade = ofMap(sin(2*t), -1, 1, 0.5, 1);
         
-        
         if(ofGetFrameNum() % 4 == 1) position += 1;
-        if(position > numLED) {
+        if(position > height) {
             position = 0; 
         }
         
         float blink = ofMap(sin(40*t), -1, 1, 0, 1);
-        
-        
         float blinkPhase = ofMap(sin(0.5*t), -1, 1, 0, 1);
         
-        
-        //if(blinkPhase > 0.8) {
-        //    fade = blink;
-        //}
-        
-        
-        for(int i=0; i<numLED; i++) {
-            
-            /*if(blinkPhase > 0.96) {
-                
-                if(blink > 0.9) {
-                    ledData[i].set(140, 140, 140);
-                } else {
-                    ledData[i].set(ledData[i].r * 0.6, ledData[i].g * 0.6, ledData[i].b * 0.6);
-                }
-                
-            } else {*/
-            
+        for(int i=0; i<height; i++) {
                 
                 if(i == position) {
                     ledData[i].set(90, 180, 90);
                 } else {
                     ledData[i].set(ledData[i].r * 0.99, ledData[i].g * 0.96, ledData[i].b * 0.96);
                 }
-            
-            
-            /*}*/
+            }
         }
+    
+    
+    ofBackground(20);
+    float size = ofGetWidth()*1.0 / height;
         
-        
-        
+    ofFill();
+    for(int i =0 ; i < height; i++)
+    {
+        ofSetColor(ledData[i].r, ledData[i].b, ledData[i].g);
+        ofRect(i * size, 0, size, ofGetHeight()/2);
     }
     
     
-    
-    //if(ofGetLogLevel() == OF_LOG_VERBOSE) {
-    
-        ofBackground(20);
-        int size = ofGetWidth() / (numLED-1);
-        
-        for(int i =0 ; i < numLED; i++)
-        {
-            ofSetColor(ledData[i].r, ledData[i].b, ledData[i].g);
-            ofFill();
-            ofRect(i * size, 0, size, ofGetHeight()/2);
-        }
-    
-    
     ofSetColor(255);
+    
     ofPushMatrix();
     
-    ofDrawBitmapString("Framerate: " + ofToString(ofGetFrameRate()), 20, ofGetHeight()-20);
+    ofTranslate(60, 0);
+    ofDrawBitmapString("Framerate: " + ofToString(ofGetFrameRate()), 00, ofGetHeight()-20);
+    
+    string autoString = "off";
+    if(autoMode) autoString = "on";
+    
+    ofDrawBitmapString("Automatic mode: " + autoString, 0, ofGetHeight()-40);
+    
+    ofDrawBitmapString("Millis since last command: " + ofToString((ofGetElapsedTimeMillis() - lastLedCmdTime) ), 0, ofGetHeight()-60);
     
     
-    ofDrawBitmapString("autoMode: " + ofToString(autoMode), 20, ofGetHeight()-40);
+    string strstate;
+    if(state == STATE_CONNECTED) {
+        strstate = "Connected";
+    } else if(STATE_WAITING) {
+        strstate = "Waiting for signal";
+    }
     
+    ofDrawBitmapString("State: " + strstate, 0, ofGetHeight()-80);
     
-    ofDrawBitmapString("lastLedCmdTime millis ago: " + ofToString((ofGetElapsedTimeMillis() - lastLedCmdTime) ), 20, ofGetHeight()-60);
+    ofDrawBitmapString("id: " + ofToString(clientId), 0, ofGetHeight()-100);
+    
+    ofDrawBitmapString("Master: " + masterHostname + " port: " + ofToString(masterPort), 0, ofGetHeight()-120);
+    
     ofPopMatrix();
         
-    //}
     
     
 }

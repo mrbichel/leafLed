@@ -8,7 +8,7 @@ from fabric.decorators import roles
 
 env.password = "etunaz20"
 env.roledefs = {
-    'leader': ['pi@leaf4.local', ],
+    'leader': ['pi@leaf18.local', ],
     'all': [     
         'pi@leaf1.local',
         'pi@leaf2.local',
@@ -101,7 +101,8 @@ def kill_all():
 def deploy():
     with cd(code_dir):  
         with lcd('LedClient'):
-            run('rm bin/LedClient')
+            with settings(warn_only=True):
+                run('rm bin/LedClient')
             put('bin/LedClient', 'bin')
             run('chmod a+x ./bin/LedClient')
         start_background()

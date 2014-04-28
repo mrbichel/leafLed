@@ -1,11 +1,12 @@
 #pragma once
 
 #include "ofMain.h"
-
 #include "ofxOsc.h"
 #include "ofxLEDsLPD8806.h"
 #include "ofxLPD8806.h"
 #include "ofxXmlSettings.h"
+
+enum {STATE_CONNECTED, STATE_WAITING};
 
 class testApp : public ofBaseApp, public ofThread{
 
@@ -25,6 +26,8 @@ class testApp : public ofBaseApp, public ofThread{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
     
+    
+    void saveSettings();
     void threadedFunction();
 	
 	ofxOscReceiver receiver;
@@ -42,14 +45,33 @@ class testApp : public ofBaseApp, public ofThread{
     int autoModeDelay;
     bool autoMode;
     
+    int state;
+    
     string hostname;
     int number;
     
-    vector<ofColor> ledData;//ofPixels ledData;
+    vector<ofColor> ledData; //ofPixels ledData;
     
     ofTexture outTexture;
     
     float position;
+    
+    int clientId;
+    
+    string masterHostname;
+    int masterPort;
+    
+    ofxXmlSettings settings;
+    
+    string label;
+    
+    // todo:
+    int height;
+    int width;
+    
+    // handshake
+    int long helloTime;
+    int long helloResponseWait;
     
     
 };

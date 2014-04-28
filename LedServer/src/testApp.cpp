@@ -1,186 +1,319 @@
 #include "testApp.h"
 #include <ifaddrs.h>
 #include <arpa/inet.h>
-
 #include <ofURLFileLoader.h>
-
 
 void testApp::setup(){
     
-    ofSetFrameRate(60);
+    selectedClient = NULL;
+    
+    ofSetFrameRate(30);
     
     // TODO add gui for configuring nodes
-	ofSetLogLevel(OF_LOG_WARNING);
+	ofSetLogLevel(OF_LOG_NOTICE);
     oscReceiver.setup(7020);
-    
+
     // syphon input
     // TODO add select Syphon input
     syphonIn.setup();
-    syphonIn.setApplicationName("MadMapper");
-    //syphonIn.setApplicationName("Modul8");
-    syphonIn.setServerName("");
     
     directory.setup();
-    ofAddListener(directory.events.directoryUpdated,this,&testApp::directoryUpdated);
+    //ofAddListener(directory.events.serverUpdated,this,&testApp::directoryUpdated);
+    
+    //register for our directory's callbacks
+    ofAddListener(directory.events.serverAnnounced, this, &testApp::serverAnnounced);
+    ofAddListener(directory.events.serverUpdated, this, &testApp::serverUpdated);
+    ofAddListener(directory.events.serverRetired, this, &testApp::serverRetired);
     dirIdx = -1;
         
     fboIn.allocate(inputWidth, inputHeight);
     controlTexture.allocate(inputWidth, inputHeight, GL_RGB);
     
-    //fboPixelTransfer.allocate(1, 120);
-    // Setup all clients
     
-    xml.loadFile("config.xml");
+    // Load from xml
+    settings.loadFile("settings.xml");
+    lastId = settings.getValue("settings:lastId", 0.0);
     
-    numClients = xml.getNumTags("DEVICE");
-    
-    if(numClients > 0){
-        for(int i = 0; i < numClients; i++){
-            string hostname = xml.getValue("DEVICE:HOST", "localhost", i);
-            addClient(hostname);
+    if(settings.tagExists("clients")) {
+        settings.pushTag("clients");
+        for(int i = 0; i<settings.getNumTags("client"); i++) {
+            settings.pushTag("client", i);
+            
+            Client * c = new Client;
+            c->hostname =   settings.getValue("hostname",  "127.0.0.1");
+            c->clientId =   settings.getValue("clientId",  0);
+            c->label =      settings.getValue("label",     "");
+            c->inputPos.x = settings.getValue("inputPosX", 0);
+            c->inputPos.y = settings.getValue("inputPosY", 0);
+            
+            if(c->clientId != 0) clients.push_back(c);
+            
+            settings.popTag();
         }
+        settings.popTag();
     }
     
-    cout<<numClients<<endl;
     
+    monitorInput = true;
+    monitorOutput = true;
+    font.loadFont("Gui/DINNextLTPro-Regular.ttf", 12);
+
+    setGui();
+    
+}
+
+void testApp::setGui() {
     float dim = 16;
 	float xInit = OFX_UI_GLOBAL_WIDGET_SPACING;
     float length = 320-xInit;
     
     /* Adding GUI */
-    
-    gui = new ofxUIScrollableCanvas(0,0,length+xInit*2.0,ofGetHeight());
-    
+    gui = new ofxUICanvas();
     // Changing default GUI font to DinPRO Regular
     
     gui->setFont("Gui/DINNextLTPro-Regular.ttf");
     gui->setFontSize(OFX_UI_FONT_LARGE, 24);
     gui->setColorFill(ofColor(255, 255, 255));
     
-    gui->setScrollAreaToScreen();
-    gui->setScrollableDirections(false, true);
-    
 	gui->addWidgetDown(new ofxUILabel("LeafLED", OFX_UI_FONT_LARGE));
-    gui->addSpacer(length, 2);
+    gui->addSpacer(length, 4);
     
     gui->addWidgetDown(new ofxUIFPSSlider("fps", length, 10));
+    //gui->addSpacer(length, 2);
+    gui->addWidgetDown(new ofxUIToggle("View input overlay",      &viewInfo,      10, 10));
     
-    gui->addSpacer(length, 2);
+    //gui->addLabelButton("Reset", false);
+    //gui->addSlider("Input scale", 0.01, 2, &inputScale);
+    //gui->addSlider("Input width",  0, 2000, &inputWidth);
+    //gui->addSlider("Input height", 0, 2000, &inputHeight);
     
-    gui->addWidgetDown(new ofxUIButton("Enable all", true, 10, 10));
-    gui->addWidgetDown(new ofxUIToggle("Monitor input",  &monitorInput, 10, 10));
-    gui->addWidgetDown(new ofxUIToggle("Monitor output", &monitorOutput, 10, 10));
-    gui->addWidgetDown(new ofxUIToggle("View info", &viewInfo, 10, 10));
-
-    gui->addSpacer(length, 4);
+    //gui->addSpacer(length, 2);
     
     // Greying LeafList a little
     gui->setColorFill(200);
     
-    gui->setWidgetFontSize(OFX_UI_FONT_SMALL);
-    for(int i=0; i<numClients; i++) {
-        gui->addWidgetDown(new ofxUILabel("Unit - " + ofToString(i+1) + ". Hostname: " + clients[i].hostname, OFX_UI_FONT_SMALL));
-        
-        //gui->addTextInput("Hostname", clients[i].hostname)->setID(i);
-        
-        gui->addWidgetDown(new ofxUIToggle("Enable", &clients[i].enabled, 10, 10))->setID(i);
-        gui->addWidgetRight(new ofxUIToggle("Connected", &clients[i].connected, 10, 10))->setID(i);
-        gui->addWidgetRight(new ofxUIToggle("Test", &clients[i].testBlink, 10, 10))->setID(i);
-        gui->addSpacer(length, 3);          
-    }
+    gui->setWidgetFontSize(OFX_UI_FONT_MEDIUM);
     
     gui->autoSizeToFitWidgets();
     ofAddListener(gui->newGUIEvent,this,&testApp::guiEvent);
-    //gui->loadSettings("GUI/guiSettings.xml");
+    gui->loadSettings("GUI/guiSettings.xml");
+    
+    //setGuiTabBar();
+    
+    for(int i=0; i<clients.size(); i++) {
+        clients[i]->setup();
+    }
     
 }
 
-void testApp::guiEvent(ofxUIEventArgs &e) {
+void testApp::setGuiTabBar() {
     
+    /*guiTabBar = new ofxUITabBar();
+    guiTabBar->setPosition(10, gui->getRect()->height+20);
+    guiTabBar->setFont("Gui/DINNextLTPro-Regular.ttf");
+    guiTabBar->setFontSize(OFX_UI_FONT_LARGE, 24);
+    
+    for(int i=0; i<clients.size(); i++) {
+        clients[i]->setup();
+    }
+    */
+}
+
+
+void testApp::guiEvent(ofxUIEventArgs &e) {
 	int kind = e.widget->getKind();
     
-    if(e.widget->getName() == "Enable all") {
-        
-        for(int i=0; i<numClients; i++) {
-            clients[i].osc->setup(clients[i].hostname, clients[i].port);
-            clients[i].enabled = true;
-        }
-        
-    }
-    
-    int id = e.widget->getID();
-    
-    if(e.widget->getName() == "Enable") {
-        
-        ofxUIToggle *toggle = (ofxUIToggle *) e.widget;
-        
-        clients[id].enabled = toggle->getValue();
-        if(clients[id].enabled) {
-            clients[id].osc->setup(clients[id].hostname, clients[id].port);
-        } else {
-            clients[id].connected = false;
-        }
-    }
-    
-    /*if(name.find("hostname" > 0))
-    {
-        for(int i=0; i<clients.size();i++) {
-            
-            if(clients[i].label + "_hostname" == name) {
-        
-                ofxUITextInput *textinput = (ofxUITextInput *) e.widget;
-                if(textinput->getTriggerType() == OFX_UI_TEXTINPUT_ON_ENTER) {
-                    cout << "ON ENTER: ";
-                    //            ofUnregisterKeyEvents((testApp*)this);
-                } else if(textinput->getTriggerType() == OFX_UI_TEXTINPUT_ON_FOCUS) {
-                    cout << "ON FOCUS: ";
-                } else if(textinput->getTriggerType() == OFX_UI_TEXTINPUT_ON_UNFOCUS) {
-                    cout << "ON BLUR: ";
-                    //            ofRegisterKeyEvents(this);
+        for(int i=0; i<clients.size(); i++) {
+            if(clients[i]->clientId == e.widget->getID()) {
+                
+                if(e.widget->getName() == "Length") {
+                    ofxUIIntSlider *n = (ofxUIIntSlider *) e.widget;
+                    clients[i]->updateHeight(n->getValue());
                 }
-                
-                string output = textinput->getTextString();
-                clients[i].hostname == textinput->getTextString();
-                textinput->setTextString(clients[i].hostname);
-                
-                cout << output << endl;
                 
             }
         }
-    }*/
+
 }
 
-void testApp::addClient(string hostname) {
+void Client::setId() {
     
-    int index = clients.size();
+    if(connected) {
+        ofxOscMessage setId;
+        setId.setAddress("/setId");
+        setId.addIntArg(clientId); // set to a uuid
+        osc->sendMessage(setId);
+    }
     
-    Client c;
-    
-    c.colors.assign(c.height, ofColor(255));
-    c.osc = new ofxOscSender();
-    
-    c.label = "leaf" + ofToString(index+1);
-    c.hostname = hostname;
-    
-    /*if(index == 1) {
-        c.hostname = "127.0.0.1";
-    }*/
-    
-    //c.osc->setup(c.hostname, c.port);
-    clients.push_back(c);
-    clients[index].inputPos.set(1+ index*5, 20);
+    delete gui;
+    setGui();
     
 }
+
+
+void Client::newId() {
+    
+    clientId = ofGetUnixTime();
+    
+    if(connected) {
+        ofxOscMessage setId;
+        setId.setAddress("/setId");
+        setId.addIntArg(clientId); // set to a uuid
+        osc->sendMessage(setId);
+    }
+    
+}
+
+Client*  testApp::handshakeClient(string hostname, int _clientId) {
+    bool exists = false;
+    bool change = false;
+    Client * c;
+    
+    if(_clientId != 0) {
+    
+        for(int i = 0; i < clients.size(); i++) {
+            if(_clientId == clients[i]->clientId) {
+                exists = true;
+                c = clients[i];
+                ofLogNotice()<<"Client with id already exists. Will update hostname.";
+                break;
+            }
+        }
+    }
+    
+    if(!exists) {
+        c = new Client();
+        c->inputPos.set(1+ clients.size()*5, 20);
+        
+        clients.push_back(c);
+    }
+    
+    if(_clientId == 0) {
+        void newId();
+    }
+    
+    c->osc->setup(c->hostname, c->port);
+    c->clientId = _clientId;
+    c->connected = true;
+    
+    if(c->hostname != hostname) {
+        c->hostname = hostname;
+        
+        change = true;
+        if(exists) { delete c->gui;
+            c->setGui();
+        }
+    }
+    
+    
+    if (!exists) c->setGui();
+    
+    c->setId();
+    
+    if(autoEnable) c->enabled = true;
+
+    
+    //guiTabBar->exit();
+    //delete guiTabBar;
+    //setGuiTabBar();
+    
+    
+    
+    return c;
+}
+
+void Client::updateHeight(int _height) {
+        height = _height;
+        colors.assign(height, ofColor(255));
+        
+        if(connected) {
+            ofLogNotice()<<"Sending set length";
+            ofxOscMessage m;
+            m.setAddress("/setLength");
+            m.addIntArg(height);
+            osc->sendMessage(m);
+        }
+}
+
+void Client::setup() {
+    setGui();
+}
+
+
+void Client::setGui() {
+    
+    testApp* app = ((testApp*)ofGetAppPtr());
+    
+    gui = new ofxUICanvas;
+    
+    gui->setName("[" + ofToString(clientId) + "]  " + hostname);
+    
+    float dim = 16;
+	float xInit = OFX_UI_GLOBAL_WIDGET_SPACING;
+    float length = 320-xInit;
+    
+    gui->setFont("Gui/DINNextLTPro-Regular.ttf");
+    gui->setFontSize(OFX_UI_FONT_LARGE, 24);
+    gui->setColorFill(ofColor(255, 255, 255));
+    
+        gui->addWidgetDown(new ofxUILabel("Selected Client", OFX_UI_FONT_MEDIUM));
+    
+        gui->addWidgetDown(new ofxUILabel("[" + ofToString(clientId) + "]  " + hostname, OFX_UI_FONT_MEDIUM));
+    
+        gui->addSlider("Position x", 0, app->inputWidth, &inputPos.x);
+        gui->addSlider("Position y", 0, app->inputHeight, &inputPos.y);
+        gui->addIntSlider("Length", 1, 600, height);
+        gui->addToggle("Enabled", &enabled);
+        
+        gui->addToggle("Connected", &connected);
+    
+        gui->addLabelButton("Remove", false);
+    
+    gui->autoSizeToFitWidgets();
+    ofAddListener(gui->newGUIEvent,this,&Client::guiEvent);
+    
+    gui->setPosition(10, app->gui->getRect()->height+200);
+    gui->setVisible(false);
+    
+    // add to the tab bar menu
+    //app->guiTabBar->update();
+    //app->guiTabBar->addCanvas(gui);
+    
+}
+
+
+void Client::guiEvent(ofxUIEventArgs &e) {
+	int kind = e.widget->getKind();
+
+    if(e.widget->getName() == "Length") {
+        ofxUIIntSlider *n = (ofxUIIntSlider *) e.widget;
+        updateHeight(n->getValue());
+        
+    }
+    
+    if(e.widget->getName() == "Remove") {
+        ofxUILabelButton *n = (ofxUILabelButton *) e.widget;
+        setRemove = true;
+    }
+    
+    
+    if(e.widget->getName() == "Connected") {
+        ofxUIToggle *n = (ofxUIToggle *) e.widget;
+        connected = false;
+    }
+    
+}
+
 
 void Client::update(string method) {
     
+    if(!connected) enabled = false;
     
     // TODO output data from framebuffer texture
     
     //m.setRemoteEndpoint(hostname, port);    
     
     if(connected && enabled) {
-        
         
         // Performance notes
         // raw pack and send: 16 FPS
@@ -206,44 +339,98 @@ void Client::update(string method) {
                 m.addIntArg(colors[i].g);
                 
                 //cout<<"C color r: "<<ofToString(c.r)<<endl;
+                osc->sendMessage(m);
+                
+            }
+        } else if(method == "packed") { //TODO: break this up so we don't hit the size limit
+            // Send enitre frame as one OSC message
+            
+            if( ofGetElapsedTimeMillis() - lastCmdTime > 1 ) {
+                
+            int oscpackets = ceil(colors.size() / 120);
+            
+            for(int p=0; p<colors.size(); p+=120) {
+                
+                ofxOscMessage m;
+                m.setAddress("/p");
+                m.addIntArg(p);
+                
+                int start   = p;
+                int end     = start+120;
+                
+                for(int i = start; i < colors.size() && i<end; i++) {
+                    m.addIntArg(colors[i].r);
+                    m.addIntArg(colors[i].b); // yes this is reversed
+                    m.addIntArg(colors[i].g);
+                }
                 
                 osc->sendMessage(m);
                 
             }
-        } else if(method == "packed") { // does this break at size limit?
-            // Send enitre frame as one OSC message
+                lastCmdTime = ofGetElapsedTimeMillis();
+            }
+
+        } else if(method == "compressed") {
+            // TODO: send a compressed frame over osc and decompress it on clients
             
             ofxOscMessage m;
             m.setAddress("/p");
             
+            string cdata = "";
+            
             for(int i = 0; i < colors.size(); i++) {
-                m.addIntArg(colors[i].r);
-                m.addIntArg(colors[i].b); // yes this is reversed
-                m.addIntArg(colors[i].g);
+                cdata += colors[i].r;
+                cdata += colors[i].b;
+                cdata += colors[i].g;
             }
-                        
+            
+            m.addStringArg(cdata);
+            
             osc->sendMessage(m);
             
-        } else if(method == "compressed") {
-            // TODO: send a compressed frame over osc and decompress it on clients
-        }
-    }
-    
-    if(!connected && enabled) {
-        if(ofGetElapsedTimeMillis() % 100 == 1) {
-            ofxOscMessage m;
-            m.setAddress("/status");
-            m.addStringArg(label);
-            osc->sendMessage(m);
             
-            ofLogWarning(ofToString(hostname) + ": Not connected!");
         }
     }
-    
+     
 }
 
 //--------------------------------------------------------------
 void testApp::update(){
+    
+    
+    if(selectedClientIndex == clients.size()) {
+        selectedClientIndex = 0;
+    }
+    
+    if (selectedClientIndex == -1) {
+        selectedClientIndex = clients.size()-1;
+    }
+    selectedClient = clients[selectedClientIndex];
+
+    vector<Client *>::iterator it;
+    for(it = clients.begin() ; it != clients.end();)
+    {
+        if((*it)->setRemove) {
+            //selectedClientIndex = 0;
+            delete (*it);
+            clients.erase(it);
+        } else {
+            it++;
+        }
+        
+    }
+    
+    for(it = clients.begin() ; it != clients.end() ; ++it)
+    {
+        
+        if((*it) == selectedClient) {
+            (*it)->gui->setVisible(true);
+        } else {
+            (*it)->gui->setVisible(false);
+        }
+    }
+    
+
     
     
     while(oscReceiver.hasWaitingMessages()){
@@ -258,32 +445,37 @@ void testApp::update(){
             int status = m.getArgAsInt32(1);
             string message = m.getArgAsString(2);
             
-            
             ofLogNotice("Got Status callback from: " + label + " status: " + ofToString(status) + "   " + message );
             
-            for(int i=0; i<clients.size(); i++) {
-                if(clients[i].label == label) {
-                    if(status > 0) {
-                        clients[i].connected = true;
-                    }
-                }
-            }
-        
+        } else if(m.getAddress() == "/hello") {
+            
+            int _cid = m.getArgAsInt32(0);
+            
+            ofLogNotice()<<"Client with id "<<_cid<<" and ip "<<m.getRemoteIp()<<" says hello.";
+            
+            handshakeClient(m.getRemoteIp(), _cid);
+            createClientGui();
             
         }
     }
     
     
 	for(int i=0; i<clients.size(); i++) {
-        //if(ofGetFrameNum() % 4 == 1)
-        clients[i].update(updateMethod);
+        clients[i]->update(updateMethod);
     }
     
 }
 
 //--------------------------------------------------------------
 void testApp::draw(){
-        
+    
+    inputHeight = round(inputHeight);
+    inputWidth = round(inputWidth);
+    
+    int scale = 1;
+    
+    gui->setPosition(10, 10);
+    
     ofEnableAlphaBlending();
     ofSetColor(255);
     ofBackground(30);
@@ -302,56 +494,62 @@ void testApp::draw(){
     controlTexture = fboIn.getTextureReference();
     ofDisableAlphaBlending();
     
-    
     // Draw the input and copy to output color data
     ofPushMatrix();
-    ofTranslate(400, 20);
+    ofTranslate(gui->getRect()->width + 40, 80);
+    
     ofSetColor(255);
     ofNoFill();
-    ofRect(-1, -1, inputWidth+2, inputHeight+2);
-    controlTexture.draw(0,0, inputWidth, inputHeight);
+    ofRect(0, 0, inputWidth*scale+2, inputHeight*scale+2);
+    controlTexture.draw(1,1, inputWidth*scale, inputHeight*scale);
+    
+
+    font.drawString("Input " + syphonIn.getServerName() + "-" + syphonIn.getApplicationName()
+                    + " [" + ofToString(syphonIn.getWidth()) + "x" + ofToString(syphonIn.getHeight())+"] "
+                    + "Scaled to [" + ofToString(inputWidth) + "x" + ofToString(inputHeight) + "]", 0, -16);
     
     for(int i=0; i<clients.size(); i++) {
         
         ofNoFill();
         if(viewInfo) {
-            ofRect(clients[i].inputPos.x, clients[i].inputPos.y, clients[i].width+1, clients[i].height);
+            ofRect(clients[i]->inputPos.x*scale, clients[i]->inputPos.y*scale, clients[i]->width*scale+1, clients[i]->height*scale);
         }
         ofFill();
         
-        /*fboPixelTransfer.begin();
-        ofBackground(0);
-        controlTexture.drawSubsection(0, 0, clients[i].width, clients[i].height,
-                                      clients[i].inputPos.x, clients[i].inputPos.y);
-        fboPixelTransfer.end();*/
-        
         controlTexture.readToPixels(controlPixels);
-        for(int p = 0; p < clients[i].height; p++) {
-            clients[i].colors[p] = controlPixels.getColor(clients[i].inputPos.x, clients[i].inputPos.y+p);
-        }
-        
-        if(clients[i].testBlink) {
-            for(int p = 0; p < clients[i].height; p++) {
-                clients[i].colors[p].set(255,0,0);
+        for(int p = 0; p < clients[i]->colors.size(); p++) {
+            
+            ofColor(0,0,0);
+            
+            if(clients[i]->inputPos.y+p > controlPixels.getHeight()) {
+                clients[i]->colors[p] = ofColor(0,0,0);
+            } else {
+                clients[i]->colors[p] = controlPixels.getColor(clients[i]->inputPos.x, clients[i]->inputPos.y+p);
             }
         }
         
+        if(clients[i]->testBlink) {
+            for(int p = 0; p < clients[i]->height; p++) {
+                clients[i]->colors[p].set(255,0,0);
+            }
+        }
     }
-    ofPopMatrix();
-
-    ofPushMatrix();
-    ofTranslate(620, 20);
-    ofFill();
     
+    ofPushMatrix();
+    
+    ofTranslate(inputWidth+ 40, 0);
+    
+    font.drawString("Output ", 0, -16);
+    
+    ofFill();
     if(monitorOutput) {    
         for(int i=0; i<clients.size(); i++) {
-        
-            // clients debug draw  - draw from input texture instead.
-            for(int c=0; c<clients[i].colors.size(); c++) {
-                ofSetColor(clients[i].colors[c]);
-                ofRect(i*10+4, 10+c, 6, 1);
-            }
             
+            // clients debug draw  - draw from input texture instead.
+            for(int c=0; c<clients[i]->colors.size(); c++) {
+                ofSetColor(clients[i]->colors[c]);
+                ofRect(i*4+4, 4+c, 2, 1);
+            }
         }
     }
     
@@ -359,40 +557,171 @@ void testApp::draw(){
     
     ofPopMatrix();
     
-    // 1. august - KR - GUI experiments
-    // adding ipState
-    myIpState.x = 400;
-    myIpState.y = 400;
-    myIpState.draw();
+    ofPopMatrix();
+    
+    ofPushMatrix();
+    
+    ofTranslate(10, gui->getRect()->height + 40);
+    
+    int connectedClients = 0;
+    for(int i = 0; i<clients.size(); i++) {
+        if (clients[i]->connected) connectedClients++;
+    }
+
+    int line = 0;
+    
+    font.drawString("Use arrow keys to select client. \nPress i to change syphon input.", 0, line);
+    line+=font.getLineHeight()*3;
+    font.drawString("Total clients: " + ofToString(clients.size()), 0, line);
+    line+=font.getLineHeight()*1.5;
+    
+
+    font.drawString("Connected clients:  " + ofToString(connectedClients), 0, line);
+    
+    ofPopMatrix();
+    /*for(int i=0; i<clients.size(); i++) {
+        
+        ofPushMatrix();
+        ofTranslate(ofGetWidth()-200, 20+ i*90);
+        
+        ofDrawBitmapString(clients[i]->hostname, 0,0);
+        ofDrawBitmapString("ID: " + ofToString(clients[i]->clientId), 0, 20);
+        ofDrawBitmapString("Connected: " + ofToString(clients[i]->connected), 0, 40);
+        ofDrawBitmapString("Enabled: " + ofToString(clients[i]->enabled), 0, 60);
+        
+        ofPopMatrix();
+    }*/
+}
+
+
+void testApp::createClientGui() {
+    
+    //delete clientsGui;
+    
+    /*float dim = 16;
+	float xInit = OFX_UI_GLOBAL_WIDGET_SPACING;
+    float length = 320-xInit;
+    
+    clientsGui = new ofxUIScrollableCanvas(10,gui->getRect()->height+20,length+xInit*2.0,ofGetHeight()-(gui->getRect()->height+20));
+    
+    clientsGui->setFont("Gui/DINNextLTPro-Regular.ttf");
+    clientsGui->setFontSize(OFX_UI_FONT_LARGE, 24);
+    clientsGui->setColorFill(ofColor(255, 255, 255));
+    
+    clientsGui->setScrollAreaHeight(ofGetHeight()-(gui->getRect()->height+20));
+    clientsGui->setScrollableDirections(false, true);
+    
+	//clientsGui->addWidgetDown(new ofxUILabel("Clients", OFX_UI_FONT_MEDIUM));
+    
+    
+    for(int i=0; i<clients.size(); i++) {
+        
+        //clientsGui->addWidgetDown(new ofxUICanvas)
+        clientsGui->addWidgetDown(new ofxUILabel("[" + ofToString(clients[i]->clientId) + "]  " + clients[i]->hostname, OFX_UI_FONT_SMALL));
+        
+        clientsGui->addSlider("Position x", 0, inputWidth, &clients[i]->inputPos.x);
+        clientsGui->addSlider("Position y", 0, inputWidth, &clients[i]->inputPos.y);
+        clientsGui->addIntSlider("Length", 1, 600, &clients[i]->height)->setID(clients[i]->clientId);
+        clientsGui->addToggle("Enabled", &clients[i]->enabled);
+        
+        clientsGui->addToggle("Connected", clients[i]->connected);
+        clientsGui->addSpacer(length, 1);
+    }
+    
+    clientsGui->autoSizeToFitWidgets();
+    ofAddListener(clientsGui->newGUIEvent,this,&testApp::guiEvent);*/
     
 }
 
-void testApp::exit(){
+
+
+void testApp::saveSettings() {
+    settings.clear();
+    
+    settings.setValue("lastId", lastId);
+    settings.addTag("clients");
+    settings.pushTag("clients");
+    
+    for(int i=0; i<clients.size(); i++) {
         
-    //gui->saveSettings("GUI/guiSettings.xml");
+        settings.addTag("client");
+        settings.pushTag("client", i);
+        
+        settings.setValue("clientId", clients[i]->clientId);
+        settings.setValue("hostname", clients[i]->hostname);
+        settings.setValue("label", clients[i]->label);
+        
+        settings.setValue("inputPosX", clients[i]->inputPos.x);
+        settings.setValue("inputPosY", clients[i]->inputPos.y);
+        
+        settings.popTag();
+        
+    }
+    
+    settings.popTag();
+    settings.save("settings.xml");
+    
+}
+
+
+void testApp::exit(){
+    
+    saveSettings();
+    gui->saveSettings("GUI/guiSettings.xml");
+    
     delete gui;
     
 }
 
-
-void testApp::directoryUpdated(ofxSyphonServerDirectoryEventArgs &arg)
+//these are our directory's callbacks
+void testApp::serverAnnounced(ofxSyphonServerDirectoryEventArgs &arg)
 {
-    for( auto& server : arg.directory->getServerList() ){ //new c++ auto keyword
-        ofLogNotice("ofxSyphonServerDirectory Updated:: ")<<" Server Name: "<<server.serverName <<" | App Name: "<<server.appName;
+    
+    syphonInputs.clear();
+    for(int i =0; i<directory.getServerList().size(); i++) {
+        syphonInputs.push_back( directory.getServerList()[i].serverName + directory.getServerList()[i].appName);
+    }
+    
+    for( auto& dir : arg.servers ){
+        ofLogNotice("ofxSyphonServerDirectory Server Announced")<<" Server Name: "<<dir.serverName <<" | App Name: "<<dir.appName;
+    }
+    dirIdx = 0;
+}
+
+void testApp::serverUpdated(ofxSyphonServerDirectoryEventArgs &arg)
+{
+    for( auto& dir : arg.servers ){
+        ofLogNotice("ofxSyphonServerDirectory Server Updated")<<" Server Name: "<<dir.serverName <<" | App Name: "<<dir.appName;
+    }
+    dirIdx = 0;
+}
+
+void testApp::serverRetired(ofxSyphonServerDirectoryEventArgs &arg)
+{
+    for( auto& dir : arg.servers ){
+        ofLogNotice("ofxSyphonServerDirectory Server Retired")<<" Server Name: "<<dir.serverName <<" | App Name: "<<dir.appName;
     }
     dirIdx = 0;
 }
 
 //--------------------------------------------------------------
 void testApp::keyPressed(int key){
-
-    dirIdx++;
-    if(dirIdx > directory.size() - 1)
-        dirIdx = 0;
+    if(key == 'i') {
+        dirIdx++;
+        if(dirIdx > directory.size() - 1)
+            dirIdx = 0;
+        
+        if(directory.isValidIndex(dirIdx)){
+            syphonIn.setServerName(directory.getServerList()[dirIdx].serverName);
+            syphonIn.setApplicationName(directory.getServerList()[dirIdx].appName);
+        }
+    }
     
-    if(directory.isValidIndex(dirIdx)){
-        syphonIn.setServerName(directory.getServerList()[dirIdx].serverName);
-        syphonIn.setApplicationName(directory.getServerList()[dirIdx].appName);
+    if(key == OF_KEY_LEFT) {
+        selectedClientIndex--;
+    } else if(key == OF_KEY_RIGHT) {
+        selectedClientIndex++;
+        
     }
     
 }
