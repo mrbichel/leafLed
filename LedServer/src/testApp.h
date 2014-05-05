@@ -19,6 +19,7 @@ struct Client {
     }
 
     void updateHeight(int _height);
+    void guiEvent(ofxUIEventArgs &e);
     
     void setup();
     void setGui();
@@ -29,10 +30,9 @@ struct Client {
     
     void updateGui();
     
-    void guiEvent(ofxUIEventArgs &e);
-    
     ofxUICanvas * gui;
-    
+    ofxUITextInput * heightInput;
+
     string hostname;// = "127.0.0.1";
     int port = 7010;
     
@@ -44,12 +44,13 @@ struct Client {
     
     ofPoint inputPos;
     int width = 1;
-    int height = 400;
+    int height = 120;
     
     ofxOscSender * osc;
     
     bool connected = false;
     bool enabled = false;
+    bool test = false;
     
     bool testBlink = false;
     
@@ -79,6 +80,8 @@ class testApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
     
+    
+    void setInputScale();
     void createClientGui();
     
     void saveSettings();
@@ -87,8 +90,8 @@ class testApp : public ofBaseApp{
     void updateGui();
     
     int numClients;
-    float inputWidth  = 480;
-    float inputHeight = 480;
+    float inputWidth;
+    float inputHeight;
     
     bool autoEnable = true;
     float inputscale;
@@ -107,6 +110,9 @@ class testApp : public ofBaseApp{
     void resetGuiTabBar();
     
     ofxUITabBar *guiTabBar;
+    
+    ofxUITextInput * scaleheight;
+    ofxUITextInput * scalewidth;
     
     //ofxUIScrollableCanvas *clientsGui;
     
@@ -137,7 +143,7 @@ class testApp : public ofBaseApp{
     bool connect;
     bool viewInfo;
     
-    bool testBlink;
+    //bool testBlink;
     
     bool listenForNewClients = true;
     

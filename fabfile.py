@@ -9,37 +9,10 @@ from fabric.decorators import roles
 env.password = "etunaz20"
 env.roledefs = {
     'leader': ['pi@leaf18.local', ],
-    'all': [     
-        'pi@leaf1.local',
-        'pi@leaf2.local',
-        'pi@leaf3.local',
+
+    'all': [
+        #'pi@leaf18.local',
         'pi@leaf4.local',
-        'pi@leaf5.local',
-        'pi@leaf6.local', ## SPI speed 50000
-        'pi@leaf7.local', ## SPI speed 50000
-        'pi@leaf8.local',
-        'pi@leaf9.local',
-        'pi@leaf10.local',
-        'pi@leaf11.local',
-        'pi@leaf12.local',
-        'pi@leaf13.local',
-        'pi@leaf14.local',
-        'pi@leaf15.local',
-        'pi@leaf16.local',
-        'pi@leaf17.local', #
-        'pi@leaf18.local',
-        'pi@leaf19.local', # boks 23
-        'pi@leaf20.local',
-        'pi@leaf21.local', 
-        'pi@leaf22.local', #
-        'pi@leaf23.local', # boks 20
-        'pi@leaf24.local',
-        'pi@leaf25.local',
-        'pi@leaf26.local',  
-        'pi@leaf27.local',
-        'pi@leaf28.local',
-        'pi@leaf29.local',
-        'pi@leaf30.local', # 6-2
     ],
     
     'old': [
@@ -47,6 +20,7 @@ env.roledefs = {
         'pi@leaf30.local',
         'pi@leaf17.local',
     ]
+
 }
 
 env.skip_bad_hosts=True

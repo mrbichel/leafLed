@@ -7,12 +7,18 @@ void testApp::setup(){
     
     selectedClient = NULL;
     
+    // Load from xml
+    settings.loadFile("settings.xml");
+    //lastId = settings.getValue("lastId", 0.0);
+    inputHeight = settings.getValue("inputHeight", 480);
+    inputWidth  = settings.getValue("inputWidth", 480);
+    
     ofSetFrameRate(30);
     
     // TODO add gui for configuring nodes
 	ofSetLogLevel(OF_LOG_NOTICE);
     oscReceiver.setup(7020);
-
+    
     // syphon input
     // TODO add select Syphon input
     syphonIn.setup();
@@ -25,15 +31,10 @@ void testApp::setup(){
     ofAddListener(directory.events.serverUpdated, this, &testApp::serverUpdated);
     ofAddListener(directory.events.serverRetired, this, &testApp::serverRetired);
     dirIdx = -1;
-        
-    fboIn.allocate(inputWidth, inputHeight);
-    controlTexture.allocate(inputWidth, inputHeight, GL_RGB);
     
     
-    // Load from xml
-    settings.loadFile("settings.xml");
-    lastId = settings.getValue("settings:lastId", 0.0);
-    
+    setInputScale();
+
     if(settings.tagExists("clients")) {
         settings.pushTag("clients");
         for(int i = 0; i<settings.getNumTags("client"); i++) {
@@ -45,9 +46,9 @@ void testApp::setup(){
             c->label =      settings.getValue("label",     "");
             c->inputPos.x = settings.getValue("inputPosX", 0);
             c->inputPos.y = settings.getValue("inputPosY", 0);
+            c->updateHeight(settings.getValue("height",  120));
             
             if(c->clientId != 0) clients.push_back(c);
-            
             settings.popTag();
         }
         settings.popTag();
@@ -59,6 +60,12 @@ void testApp::setup(){
     font.loadFont("Gui/DINNextLTPro-Regular.ttf", 12);
 
     setGui();
+}
+
+void testApp::setInputScale() {
+    
+    fboIn.allocate(inputWidth, inputHeight);
+    controlTexture.allocate(inputWidth, inputHeight, GL_RGB);
     
 }
 
@@ -84,7 +91,8 @@ void testApp::setGui() {
     
     
     //Todo: input scale to
-    
+    gui->addTextInput("Scale width", ofToString(inputWidth));
+    gui->addTextInput("Scale height", ofToString(inputHeight));
     
     //gui->addLabelButton("Reset", false);
     //gui->addSlider("Input scale", 0.01, 2, &inputScale);
@@ -127,31 +135,50 @@ void testApp::setGuiTabBar() {
 void testApp::guiEvent(ofxUIEventArgs &e) {
 	int kind = e.widget->getKind();
     
-        for(int i=0; i<clients.size(); i++) {
-            if(clients[i]->clientId == e.widget->getID()) {
-                
-                if(e.widget->getName() == "Length") {
-                    ofxUIIntSlider *n = (ofxUIIntSlider *) e.widget;
-                    clients[i]->updateHeight(n->getValue());
-                }
-                
-            }
+    if(e.widget->getName() == "Scale width") {
+        
+        
+        ofxUITextInput *n = (ofxUITextInput *) e.widget;
+        
+        if(ofToInt(n->getTextString())) {
+            
+            inputWidth = ofToInt(n->getTextString());
+            setInputScale();
+            n->setTextString(ofToString(inputWidth));
         }
-
+        n->setTextString(ofToString(inputWidth));
+        
+    }
+    
+    
+    if(e.widget->getName() == "Scale height") {
+        
+        
+        ofxUITextInput *n = (ofxUITextInput *) e.widget;
+        
+        if(ofToInt(n->getTextString())) {
+            inputHeight = ofToInt(n->getTextString());
+            setInputScale();
+            n->setTextString(ofToString(inputHeight));
+        }
+        n->setTextString(ofToString(inputHeight));
+        
+    }
+    
+    
 }
 
 void Client::setId() {
     
     if(connected) {
-        ofxOscMessage setId;
-        setId.setAddress("/setId");
-        setId.addIntArg(clientId); // set to a uuid
-        osc->sendMessage(setId);
+        ofxOscMessage msetId;
+        msetId.setAddress("/setId");
+        msetId.addIntArg(clientId); // set to a uuid
+        osc->sendMessage(msetId);
     }
     
     delete gui;
     setGui();
-    
 }
 
 
@@ -160,10 +187,10 @@ void Client::newId() {
     clientId = ofGetUnixTime();
     
     if(connected) {
-        ofxOscMessage setId;
-        setId.setAddress("/setId");
-        setId.addIntArg(clientId); // set to a uuid
-        osc->sendMessage(setId);
+        ofxOscMessage msetId;
+        msetId.setAddress("/setId");
+        msetId.addIntArg(clientId); // set to a uuid
+        osc->sendMessage(msetId);
     }
     
 }
@@ -173,8 +200,6 @@ Client*  testApp::handshakeClient(string hostname, int _clientId) {
     bool change = false;
     Client * c;
     
-    if(_clientId != 0) {
-    
         for(int i = 0; i < clients.size(); i++) {
             if(_clientId == clients[i]->clientId) {
                 exists = true;
@@ -183,22 +208,34 @@ Client*  testApp::handshakeClient(string hostname, int _clientId) {
                 break;
             }
         }
+    
+    if(!exists) {
+        for(int i = 0; i < clients.size(); i++) {
+            if(hostname == clients[i]->hostname) {
+                exists = true;
+                c = clients[i];
+                ofLogNotice()<<"Client with hostname already exists. Waiting for unit to receive id.";
+                
+                break;
+            }
+        }
     }
     
     if(!exists) {
         c = new Client();
         c->inputPos.set(1+ clients.size()*5, 20);
-        
         clients.push_back(c);
     }
     
-    if(_clientId == 0) {
-        void newId();
-    }
     
     c->osc->setup(c->hostname, c->port);
-    c->clientId = _clientId;
     c->connected = true;
+    
+    if(_clientId == 0) {
+        c->newId();
+    } else {
+        c->clientId = _clientId;
+    }
     
     if(c->hostname != hostname) {
         c->hostname = hostname;
@@ -215,13 +252,8 @@ Client*  testApp::handshakeClient(string hostname, int _clientId) {
     c->setId();
     
     if(autoEnable) c->enabled = true;
-
     
-    //guiTabBar->exit();
-    //delete guiTabBar;
-    //setGuiTabBar();
-    
-    
+    c->updateHeight(c->height);
     
     return c;
 }
@@ -237,6 +269,7 @@ void Client::updateHeight(int _height) {
             m.addIntArg(height);
             osc->sendMessage(m);
         }
+    
 }
 
 void Client::setup() {
@@ -260,16 +293,21 @@ void Client::setGui() {
     
         gui->addWidgetDown(new ofxUILabel("Selected Client", OFX_UI_FONT_MEDIUM));
     
-        gui->addWidgetDown(new ofxUILabel("[" + ofToString(clientId) + "]  " + hostname, OFX_UI_FONT_MEDIUM));
+        gui->addWidgetDown(new ofxUILabel("[" + ofToString(clientId) + "]  " + hostname, OFX_UI_FONT_SMALL));
     
-        gui->addSlider("Position x", 0, app->inputWidth, &inputPos.x);
+        gui->addSlider("Position x",0, app->inputWidth, &inputPos.x);
         gui->addSlider("Position y", 0, app->inputHeight, &inputPos.y);
-        gui->addIntSlider("Length", 1, 600, height); //todo input field exact
+    
+        gui->addWidgetDown(new ofxUILabel("Length", OFX_UI_FONT_MEDIUM));
+    
+        heightInput = new ofxUITextInput("Length", ofToString(height), 140);
+        gui->addWidgetDown(heightInput);
+    
+        //gui->addIntSlider("Length", 1, 600, height); //todo input field exact
     
         gui->addToggle("Enabled", &enabled);
-        
         gui->addToggle("Connected", &connected);
-    
+        gui->addToggle("Test", &test);
         gui->addLabelButton("Remove", false);
     
         // todo: rotate
@@ -287,14 +325,22 @@ void Client::setGui() {
 }
 
 
+
 void Client::guiEvent(ofxUIEventArgs &e) {
 	int kind = e.widget->getKind();
 
     if(e.widget->getName() == "Length") {
-        ofxUIIntSlider *n = (ofxUIIntSlider *) e.widget;
-        updateHeight(n->getValue());
+        ofxUITextInput *n = (ofxUITextInput *) e.widget;
         
+        if(ofToInt(n->getTextString())) {
+            updateHeight(ofToInt(n->getTextString()));
+            n->setTextString(ofToString(height));
+        }
+        
+        n->setTextString(ofToString(height));
     }
+    
+    //heightInput->setTextString(ofToString(height));
     
     if(e.widget->getName() == "Remove") {
         ofxUILabelButton *n = (ofxUILabelButton *) e.widget;
@@ -311,6 +357,7 @@ void Client::guiEvent(ofxUIEventArgs &e) {
 
 
 void Client::update(string method) {
+    
     
     if(!connected) enabled = false;
     
@@ -393,10 +440,8 @@ void Client::update(string method) {
             
             osc->sendMessage(m);
             
-            
         }
     }
-     
 }
 
 //--------------------------------------------------------------
@@ -410,7 +455,9 @@ void testApp::update(){
     if (selectedClientIndex == -1) {
         selectedClientIndex = clients.size()-1;
     }
-    selectedClient = clients[selectedClientIndex];
+    if(clients.size() > 0) {
+        selectedClient = clients[selectedClientIndex];
+    }
 
     vector<Client *>::iterator it;
     for(it = clients.begin() ; it != clients.end();)
@@ -427,15 +474,12 @@ void testApp::update(){
     
     for(it = clients.begin() ; it != clients.end() ; ++it)
     {
-        
         if((*it) == selectedClient) {
             (*it)->gui->setVisible(true);
         } else {
             (*it)->gui->setVisible(false);
         }
     }
-    
-
     
     
     while(oscReceiver.hasWaitingMessages()){
@@ -531,11 +575,17 @@ void testApp::draw(){
             } else {
                 clients[i]->colors[p] = controlPixels.getColor(clients[i]->inputPos.x, clients[i]->inputPos.y+p);
             }
+            
         }
         
-        if(clients[i]->testBlink) {
+        if(clients[i]->test) {
+            
             for(int p = 0; p < clients[i]->height; p++) {
-                clients[i]->colors[p].set(255,0,0);
+                
+                float in = ofMap(p, 0, clients[i]->height, 0, 1);
+                
+                
+                clients[i]->colors[p].set(abs(sin(ofGetElapsedTimef()/2 + in)) * 255 ,0,0);
             }
         }
     }
@@ -644,6 +694,9 @@ void testApp::saveSettings() {
     settings.clear();
     
     settings.setValue("lastId", lastId);
+    inputHeight = settings.setValue("inputHeight", 480);
+    inputWidth  = settings.setValue("inputWidth", 480);
+    
     settings.addTag("clients");
     settings.pushTag("clients");
     
@@ -655,6 +708,7 @@ void testApp::saveSettings() {
         settings.setValue("clientId", clients[i]->clientId);
         settings.setValue("hostname", clients[i]->hostname);
         settings.setValue("label", clients[i]->label);
+        settings.setValue("height", clients[i]->height);
         
         settings.setValue("inputPosX", clients[i]->inputPos.x);
         settings.setValue("inputPosY", clients[i]->inputPos.y);

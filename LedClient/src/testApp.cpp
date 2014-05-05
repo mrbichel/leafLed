@@ -9,6 +9,7 @@ void testApp::setup(){
     settings.loadFile("settings.xml");
     clientId = settings.getValue("id", 0);
     label = settings.getValue("label", "unnamed leafLed");
+    height = 300; //settings.getValue("height", 300);;
     
 	led = NULL;
 	ofxXmlSettings xml;
@@ -41,7 +42,6 @@ void testApp::setup(){
     autoMode = true;
     
     width = 1; // todo add support for pixel grids
-	height = 400;
 	led = new ofxLEDsLPD8806(height);
     ledData.assign(height,ofColor(255, 255, 255));
     
@@ -105,7 +105,11 @@ void testApp::update(){
                 int end     = start+120;
                 
                 for(int i=start; i<end && i<height; i++) {
-                    ledData[i].set(m.getArgAsInt32(led),m.getArgAsInt32(led+1),m.getArgAsInt32(led+2));
+                    
+                    if(led+2 < m.getNumArgs()) {
+                        ledData[i].set(m.getArgAsInt32(led),m.getArgAsInt32(led+1),m.getArgAsInt32(led+2));
+                    }
+                    
                     led +=3;
                 }
                 lastLedCmdTime = ofGetElapsedTimeMillis();
@@ -124,7 +128,6 @@ void testApp::update(){
        
         } else if ( m.getAddress() == "/status" ) {
             
-            
             ofxOscMessage r;
             r.setAddress("/status");
             r.addStringArg(m.getArgAsString(0));
@@ -137,9 +140,7 @@ void testApp::update(){
             }
             
             r.addStringArg(hostname);
-            
             sender.sendMessage(r);
-            
             
         } else if ( m.getAddress() == "/debug" ) {
             
@@ -164,7 +165,6 @@ void testApp::update(){
             
             ofLogNotice() << " Set ID to " << clientId;
 
-            
         }
         
 	}
@@ -210,6 +210,7 @@ void testApp::draw(){
         for(int i=0; i<height; i++) {
             ledData[i].set(ledData[i].r * 0.97, ledData[i].g * 0.97, ledData[i].b * 0.97);
         }
+        
     }
     
     if(autoMode) {
@@ -223,23 +224,26 @@ void testApp::draw(){
         
         float fade = ofMap(sin(2*t), -1, 1, 0.5, 1);
         
-        if(ofGetFrameNum() % 4 == 1) position += 1;
-        if(position > height) {
+        if(ofGetFrameNum() % 30 == 1) {colorTestBlink = !colorTestBlink; }
+        
+        position += 1;
+        
+        if(position > height-1) {
             position = 0; 
         }
         
-        float blink = ofMap(sin(40*t), -1, 1, 0, 1);
-        float blinkPhase = ofMap(sin(0.5*t), -1, 1, 0, 1);
         
         for(int i=0; i<height; i++) {
-                
-                if(i == position) {
-                    ledData[i].set(90, 180, 90);
-                } else {
-                    ledData[i].set(ledData[i].r * 0.99, ledData[i].g * 0.96, ledData[i].b * 0.96);
-                }
+            if(colorTestBlink) {
+                ledData[i].set(10, 255, 10);
+            } else {
+                ledData[i].set(255, 10, 10);
             }
         }
+        
+        ledData[position].set(0, 0, 0);
+        ledData[position+1].set(0, 0, 0);
+    }
     
     
     ofBackground(20);
@@ -276,14 +280,10 @@ void testApp::draw(){
     }
     
     ofDrawBitmapString("State: " + strstate, 0, ofGetHeight()-80);
-    
     ofDrawBitmapString("id: " + ofToString(clientId), 0, ofGetHeight()-100);
-    
     ofDrawBitmapString("Master: " + masterHostname + " port: " + ofToString(masterPort), 0, ofGetHeight()-120);
-    
+    ofDrawBitmapString("Pixels: " + ofToString(height), 0, ofGetHeight()-140);
     ofPopMatrix();
-        
-    
     
 }
 

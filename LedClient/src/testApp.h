@@ -12,7 +12,7 @@ class testApp : public ofBaseApp, public ofThread{
 
 	public:
 		void setup();
-	void exit();
+        void exit();
 		void update();
 		void draw();
 		
@@ -25,7 +25,6 @@ class testApp : public ofBaseApp, public ofThread{
 		void windowResized(int w, int h);
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
-    
     
     void saveSettings();
     void threadedFunction();
@@ -53,16 +52,11 @@ class testApp : public ofBaseApp, public ofThread{
     vector<ofColor> ledData; //ofPixels ledData;
     
     ofTexture outTexture;
-    
     float position;
-    
     int clientId;
-    
     string masterHostname;
     int masterPort;
-    
     ofxXmlSettings settings;
-    
     string label;
     
     // todo:
@@ -73,5 +67,6 @@ class testApp : public ofBaseApp, public ofThread{
     int long helloTime;
     int long helloResponseWait;
     
+    bool colorTestBlink;
     
 };
