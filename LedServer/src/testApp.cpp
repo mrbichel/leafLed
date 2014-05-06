@@ -5,18 +5,19 @@
 
 void testApp::setup(){
     
+    ofSetDataPathRoot("../Resources/data/");
+    
     selectedClient = NULL;
     
     // Load from xml
     settings.loadFile("settings.xml");
     //lastId = settings.getValue("lastId", 0.0);
     inputHeight = settings.getValue("inputHeight", 480);
-    inputWidth  = settings.getValue("inputWidth", 480);
-    
+    inputWidth  = settings.getValue("inputWidth",  480);
     ofSetFrameRate(30);
     
     // TODO add gui for configuring nodes
-	ofSetLogLevel(OF_LOG_NOTICE);
+	ofSetLogLevel(OF_LOG_ERROR);
     oscReceiver.setup(7020);
     
     // syphon input
@@ -31,7 +32,6 @@ void testApp::setup(){
     ofAddListener(directory.events.serverUpdated, this, &testApp::serverUpdated);
     ofAddListener(directory.events.serverRetired, this, &testApp::serverRetired);
     dirIdx = -1;
-    
     
     setInputScale();
 
@@ -81,18 +81,30 @@ void testApp::setGui() {
     gui->setFont("Gui/DINNextLTPro-Regular.ttf");
     gui->setFontSize(OFX_UI_FONT_LARGE, 24);
     gui->setColorFill(ofColor(255, 255, 255));
-    
+    gui->setPadding(2);
 	gui->addWidgetDown(new ofxUILabel("LeafLED", OFX_UI_FONT_LARGE));
-    gui->addSpacer(length, 4);
+    gui->addSpacer(length, 4)->setDrawFill(false);
     
-    gui->addWidgetDown(new ofxUIFPSSlider("fps", length, 10));
-    //gui->addSpacer(length, 2);
-    gui->addWidgetDown(new ofxUIToggle("View input overlay",      &viewInfo,      10, 10));
+    gui->addFPS();
     
+    gui->addSpacer(length, 2)->setDrawFill(false);
+    
+    gui->addWidgetDown(new ofxUIToggle("View input overlay", &viewInfo,      12, 12));
+    gui->addWidgetDown(new ofxUIToggle("Mark selected blue", &testSelected,  12, 12));
     
     //Todo: input scale to
-    gui->addTextInput("Scale width", ofToString(inputWidth));
-    gui->addTextInput("Scale height", ofToString(inputHeight));
+    gui->addSpacer(length, 2)->setDrawFill(false);
+    
+    gui->addWidgetDown(new ofxUILabel("Scale input: ", OFX_UI_FONT_MEDIUM));
+    scalewidth = new ofxUITextInput("Scale width", ofToString(inputWidth), 80);
+    scaleheight = new ofxUITextInput("Scale height", ofToString(inputHeight), 80);
+    scaleheight->setAutoClear(false);
+    scalewidth->setAutoClear(false);
+    
+    gui->addWidgetDown(new ofxUILabel("Width:", OFX_UI_FONT_SMALL));
+    gui->addWidgetRight(scalewidth);
+    gui->addWidgetRight(new ofxUILabel("Height:", OFX_UI_FONT_SMALL));
+    gui->addWidgetRight(scaleheight);
     
     //gui->addLabelButton("Reset", false);
     //gui->addSlider("Input scale", 0.01, 2, &inputScale);
@@ -108,27 +120,13 @@ void testApp::setGui() {
     
     gui->autoSizeToFitWidgets();
     ofAddListener(gui->newGUIEvent,this,&testApp::guiEvent);
+    
     gui->loadSettings("GUI/guiSettings.xml");
     
-    //setGuiTabBar();
-    
     for(int i=0; i<clients.size(); i++) {
         clients[i]->setup();
     }
     
-}
-
-void testApp::setGuiTabBar() {
-    
-    /*guiTabBar = new ofxUITabBar();
-    guiTabBar->setPosition(10, gui->getRect()->height+20);
-    guiTabBar->setFont("Gui/DINNextLTPro-Regular.ttf");
-    guiTabBar->setFontSize(OFX_UI_FONT_LARGE, 24);
-    
-    for(int i=0; i<clients.size(); i++) {
-        clients[i]->setup();
-    }
-    */
 }
 
 
@@ -144,9 +142,7 @@ void testApp::guiEvent(ofxUIEventArgs &e) {
             
             inputWidth = ofToInt(n->getTextString());
             setInputScale();
-            n->setTextString(ofToString(inputWidth));
         }
-        n->setTextString(ofToString(inputWidth));
         
     }
     
@@ -159,9 +155,7 @@ void testApp::guiEvent(ofxUIEventArgs &e) {
         if(ofToInt(n->getTextString())) {
             inputHeight = ofToInt(n->getTextString());
             setInputScale();
-            n->setTextString(ofToString(inputHeight));
         }
-        n->setTextString(ofToString(inputHeight));
         
     }
     
@@ -196,16 +190,25 @@ void Client::newId() {
 }
 
 Client*  testApp::handshakeClient(string hostname, int _clientId) {
+    
     bool exists = false;
     bool change = false;
+    
     Client * c;
     
         for(int i = 0; i < clients.size(); i++) {
             if(_clientId == clients[i]->clientId) {
-                exists = true;
-                c = clients[i];
-                ofLogNotice()<<"Client with id already exists. Will update hostname.";
-                break;
+                
+                if(!clients[i]->connected) {
+                    exists = true;
+                    c = clients[i];
+                    ofLogNotice()<<"Client with id already exists. Updating hostname.";
+                    break;
+                } else if(clients[i]->hostname != hostname) {
+                    ofLogNotice()<<"Another client with id already exists and is connected. Assigning new id.";
+                    _clientId = 0;
+                    break;
+                }
             }
         }
     
@@ -215,7 +218,6 @@ Client*  testApp::handshakeClient(string hostname, int _clientId) {
                 exists = true;
                 c = clients[i];
                 ofLogNotice()<<"Client with hostname already exists. Waiting for unit to receive id.";
-                
                 break;
             }
         }
@@ -227,12 +229,16 @@ Client*  testApp::handshakeClient(string hostname, int _clientId) {
         clients.push_back(c);
     }
     
-    
-    c->osc->setup(c->hostname, c->port);
+    if(!c->connected) {
+        if(autoEnable) c->enabled = true;
+        c->osc->setup(c->hostname, c->port);
+        c->updateHeight(c->height);
+    }
     c->connected = true;
     
     if(_clientId == 0) {
         c->newId();
+        c->setId();
     } else {
         c->clientId = _clientId;
     }
@@ -246,14 +252,7 @@ Client*  testApp::handshakeClient(string hostname, int _clientId) {
         }
     }
     
-    
     if (!exists) c->setGui();
-    
-    c->setId();
-    
-    if(autoEnable) c->enabled = true;
-    
-    c->updateHeight(c->height);
     
     return c;
 }
@@ -293,20 +292,32 @@ void Client::setGui() {
     
         gui->addWidgetDown(new ofxUILabel("Selected Client", OFX_UI_FONT_MEDIUM));
     
+        gui->addSpacer(length, 4)->setDrawFill(false);
+    
         gui->addWidgetDown(new ofxUILabel("[" + ofToString(clientId) + "]  " + hostname, OFX_UI_FONT_SMALL));
     
-        gui->addSlider("Position x",0, app->inputWidth, &inputPos.x);
-        gui->addSlider("Position y", 0, app->inputHeight, &inputPos.y);
+        gui->addSpacer(length, 4)->setDrawFill(false);
     
-        gui->addWidgetDown(new ofxUILabel("Length", OFX_UI_FONT_MEDIUM));
+        ofxUITextInput * inputposx = new ofxUITextInput("inputposx", ofToString(inputPos.x), 60);
+        inputposx->setAutoClear(false);
+        ofxUITextInput * inputposy = new ofxUITextInput("inputposy", ofToString(inputPos.y), 60);
+        inputposy->setAutoClear(false);
     
-        heightInput = new ofxUITextInput("Length", ofToString(height), 140);
-        gui->addWidgetDown(heightInput);
+        gui->addWidgetDown(new ofxUILabel("Input x:", OFX_UI_FONT_SMALL));
+        gui->addWidgetRight(inputposx);
+        gui->addWidgetRight(new ofxUILabel("Input y:", OFX_UI_FONT_SMALL));
+        gui->addWidgetRight(inputposy);
+    
+        gui->addWidgetDown(new ofxUILabel("Length:", OFX_UI_FONT_SMALL));
+    
+        heightInput = new ofxUITextInput("Length", ofToString(height), 60);
+        heightInput->setAutoClear(false);
+        gui->addWidgetRight(heightInput);
     
         //gui->addIntSlider("Length", 1, 600, height); //todo input field exact
     
         gui->addToggle("Enabled", &enabled);
-        gui->addToggle("Connected", &connected);
+        //gui->addToggle("Connected", &connected);
         gui->addToggle("Test", &test);
         gui->addLabelButton("Remove", false);
     
@@ -317,10 +328,6 @@ void Client::setGui() {
     
     gui->setPosition(10, app->gui->getRect()->height+200);
     gui->setVisible(false);
-    
-    // add to the tab bar menu
-    //app->guiTabBar->update();
-    //app->guiTabBar->addCanvas(gui);
     
 }
 
@@ -334,13 +341,30 @@ void Client::guiEvent(ofxUIEventArgs &e) {
         
         if(ofToInt(n->getTextString())) {
             updateHeight(ofToInt(n->getTextString()));
-            n->setTextString(ofToString(height));
         }
         
-        n->setTextString(ofToString(height));
     }
     
-    //heightInput->setTextString(ofToString(height));
+    
+    if(e.widget->getName() == "inputposx") {
+        ofxUITextInput *n = (ofxUITextInput *) e.widget;
+        
+
+        if(ofToInt(n->getTextString()) > -1) {
+            inputPos.x = ofToInt(n->getTextString());
+        }
+        
+    }
+    
+    
+    if(e.widget->getName() == "inputposy") {
+        ofxUITextInput *n = (ofxUITextInput *) e.widget;
+        
+        if(ofToInt(n->getTextString()) > -1) {
+            inputPos.y = ofToInt(n->getTextString());
+        }
+    }
+    
     
     if(e.widget->getName() == "Remove") {
         ofxUILabelButton *n = (ofxUILabelButton *) e.widget;
@@ -358,6 +382,8 @@ void Client::guiEvent(ofxUIEventArgs &e) {
 
 void Client::update(string method) {
     
+    inputPos.x = round(inputPos.x);
+    inputPos.y = round(inputPos.y);
     
     if(!connected) enabled = false;
     
@@ -503,7 +529,6 @@ void testApp::update(){
             ofLogNotice()<<"Client with id "<<_cid<<" and ip "<<m.getRemoteIp()<<" says hello.";
             
             handshakeClient(m.getRemoteIp(), _cid);
-            createClientGui();
             
         }
     }
@@ -559,16 +584,10 @@ void testApp::draw(){
     
     for(int i=0; i<clients.size(); i++) {
         
-        ofNoFill();
-        if(viewInfo) {
-            ofRect(clients[i]->inputPos.x*scale, clients[i]->inputPos.y*scale, clients[i]->width*scale+1, clients[i]->height*scale);
-        }
         ofFill();
         
         controlTexture.readToPixels(controlPixels);
         for(int p = 0; p < clients[i]->colors.size(); p++) {
-            
-            ofColor(0,0,0);
             
             if(clients[i]->inputPos.y+p > controlPixels.getHeight()) {
                 clients[i]->colors[p] = ofColor(0,0,0);
@@ -577,33 +596,76 @@ void testApp::draw(){
             }
             
         }
-        
+    }
+    
+    ofNoFill();
+    ofSetColor(100, 100, 100, 20);
+    for(int i=0; i<clients.size(); i++) {
+        if(viewInfo) {
+            ofRect(clients[i]->inputPos.x*scale, clients[i]->inputPos.y*scale, clients[i]->width*scale+2, clients[i]->height*scale);
+        }
+    }
+    
+    if(selectedClient != NULL) {
+        ofSetColor(255, 255, 255, 100);
+        ofRect(selectedClient->inputPos.x*scale, selectedClient->inputPos.y*scale, selectedClient->width*scale+2, selectedClient->height*scale);
+    }
+    
+    
+    // overwrite data for test and show selection
+    for(int i=0; i<clients.size(); i++) {
         if(clients[i]->test) {
-            
             for(int p = 0; p < clients[i]->height; p++) {
-                
                 float in = ofMap(p, 0, clients[i]->height, 0, 1);
-                
-                
                 clients[i]->colors[p].set(abs(sin(ofGetElapsedTimef()/2 + in)) * 255 ,0,0);
+            }
+        }
+        
+        if(testSelected) {
+            if(clients[i] == selectedClient) {
+                for(int p = 0; p < clients[i]->height; p++) {
+                    clients[i]->colors[p].set(0,0,255);
+                }
             }
         }
     }
     
     ofPushMatrix();
     
-    ofTranslate(inputWidth+ 40, 0);
+    ofTranslate(inputWidth+
+                40, 40);
     
+    ofSetColor(255, 255, 255, 255);
     font.drawString("Output ", 0, -16);
     
     ofFill();
-    if(monitorOutput) {    
+    if(monitorOutput) {
+        
+        float sp = 14;
+        float w = 8;
+        
         for(int i=0; i<clients.size(); i++) {
             
             // clients debug draw  - draw from input texture instead.
+            if(clients[i] == selectedClient) {
+                ofSetColor(255, 255, 255, 255);
+            } else {
+                ofSetColor(80, 80, 80, 255);
+            }
+            
+            ofCircle(i*sp+sp, 0, w/2);
+            
+            if(clients[i]->connected) {
+                ofSetColor(0, 255, 0, 255);
+            } else {
+                ofSetColor(255, 0, 0, 255);
+            }
+            ofCircle(i*sp+sp, w+4, w/2);
+            //ofRect(i*8+8, 8, 6, 6);
+
             for(int c=0; c<clients[i]->colors.size(); c++) {
                 ofSetColor(clients[i]->colors[c]);
-                ofRect(i*4+4, 4+c, 2, 1);
+                ofRect(i*sp + sp - (w/2), 4+w+w+c, w, 1);
             }
         }
     }
@@ -629,63 +691,10 @@ void testApp::draw(){
     line+=font.getLineHeight()*3;
     font.drawString("Total clients: " + ofToString(clients.size()), 0, line);
     line+=font.getLineHeight()*1.5;
-    
 
     font.drawString("Connected clients:  " + ofToString(connectedClients), 0, line);
     
     ofPopMatrix();
-    /*for(int i=0; i<clients.size(); i++) {
-        
-        ofPushMatrix();
-        ofTranslate(ofGetWidth()-200, 20+ i*90);
-        
-        ofDrawBitmapString(clients[i]->hostname, 0,0);
-        ofDrawBitmapString("ID: " + ofToString(clients[i]->clientId), 0, 20);
-        ofDrawBitmapString("Connected: " + ofToString(clients[i]->connected), 0, 40);
-        ofDrawBitmapString("Enabled: " + ofToString(clients[i]->enabled), 0, 60);
-        
-        ofPopMatrix();
-    }*/
-}
-
-
-void testApp::createClientGui() {
-    
-    //delete clientsGui;
-    
-    /*float dim = 16;
-	float xInit = OFX_UI_GLOBAL_WIDGET_SPACING;
-    float length = 320-xInit;
-    
-    clientsGui = new ofxUIScrollableCanvas(10,gui->getRect()->height+20,length+xInit*2.0,ofGetHeight()-(gui->getRect()->height+20));
-    
-    clientsGui->setFont("Gui/DINNextLTPro-Regular.ttf");
-    clientsGui->setFontSize(OFX_UI_FONT_LARGE, 24);
-    clientsGui->setColorFill(ofColor(255, 255, 255));
-    
-    clientsGui->setScrollAreaHeight(ofGetHeight()-(gui->getRect()->height+20));
-    clientsGui->setScrollableDirections(false, true);
-    
-	//clientsGui->addWidgetDown(new ofxUILabel("Clients", OFX_UI_FONT_MEDIUM));
-    
-    
-    for(int i=0; i<clients.size(); i++) {
-        
-        //clientsGui->addWidgetDown(new ofxUICanvas)
-        clientsGui->addWidgetDown(new ofxUILabel("[" + ofToString(clients[i]->clientId) + "]  " + clients[i]->hostname, OFX_UI_FONT_SMALL));
-        
-        clientsGui->addSlider("Position x", 0, inputWidth, &clients[i]->inputPos.x);
-        clientsGui->addSlider("Position y", 0, inputWidth, &clients[i]->inputPos.y);
-        clientsGui->addIntSlider("Length", 1, 600, &clients[i]->height)->setID(clients[i]->clientId);
-        clientsGui->addToggle("Enabled", &clients[i]->enabled);
-        
-        clientsGui->addToggle("Connected", clients[i]->connected);
-        clientsGui->addSpacer(length, 1);
-    }
-    
-    clientsGui->autoSizeToFitWidgets();
-    ofAddListener(clientsGui->newGUIEvent,this,&testApp::guiEvent);*/
-    
 }
 
 
@@ -694,8 +703,8 @@ void testApp::saveSettings() {
     settings.clear();
     
     settings.setValue("lastId", lastId);
-    inputHeight = settings.setValue("inputHeight", 480);
-    inputWidth  = settings.setValue("inputWidth", 480);
+    settings.setValue("inputHeight", inputHeight);
+    settings.setValue("inputWidth", inputWidth);
     
     settings.addTag("clients");
     settings.pushTag("clients");

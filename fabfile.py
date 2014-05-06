@@ -11,10 +11,16 @@ env.roledefs = {
     'leader': ['pi@leaf18.local', ],
 
     'all': [
-        #'pi@leaf18.local',
-        'pi@leaf4.local',
+        'pi@leaf26.local',
+        'pi@leaf1.local',
+        'pi@leaf10.local',
+        'pi@leaf3.local',
+        'pi@leaf18.local',
+        'pi@leaf7.local',
+        'pi@leaf11.local',
+        'pi@leaf8.local',
     ],
-    
+
     'old': [
         'pi@leaf23.local',
         'pi@leaf30.local',

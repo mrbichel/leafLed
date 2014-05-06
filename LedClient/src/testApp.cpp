@@ -17,7 +17,7 @@ void testApp::setup(){
     helloResponseWait = 1000;
 	int port = 7010;
     
-    masterHostname = "swing.local";
+    masterHostname = settings.getValue("master", "leafMaster.local");
     masterPort = 7020;
     
     sender.setup(masterHostname, masterPort);
@@ -165,6 +165,14 @@ void testApp::update(){
             
             ofLogNotice() << " Set ID to " << clientId;
 
+        } else if ( m.getAddress() == "/setMaster" ) {
+            
+            sender.setup(masterHostname, masterPort);
+            masterHostname = m.getArgAsString(0);
+            saveSettings();
+            
+            ofLogNotice() << " Set Master hostname to " << masterHostname;
+            
         }
         
 	}
@@ -195,7 +203,7 @@ void testApp::saveSettings() {
     settings.setValue("label", label);
     settings.setValue("height", height);
     settings.setValue("width", width);
-    
+    settings.setValue("master", masterHostname);
     settings.saveFile("settings.xml");
     
 }

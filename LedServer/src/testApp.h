@@ -12,6 +12,7 @@ struct Client {
     Client(){
         osc = new ofxOscSender;
         colors.assign(height, ofColor(255));
+        connected = false;
     };
     
     ~Client() {
@@ -57,11 +58,9 @@ struct Client {
     int long lastCallback = 0;
     
     bool setRemove = false;
-    
     int long lastCmdTime = 0;
 
 };
-
 
 class testApp : public ofBaseApp{
 
@@ -80,13 +79,10 @@ class testApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
     
-    
     void setInputScale();
-    void createClientGui();
     
     void saveSettings();
     void setGui();
-    void setGuiTabBar();
     void updateGui();
     
     int numClients;
@@ -105,9 +101,9 @@ class testApp : public ofBaseApp{
     int selectedClientIndex;
     Client * selectedClient;
     
-    ofxUICanvas *gui;
+    bool testSelected;
     
-    void resetGuiTabBar();
+    ofxUICanvas *gui;
     
     ofxUITabBar *guiTabBar;
     
