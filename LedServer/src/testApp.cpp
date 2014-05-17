@@ -17,7 +17,7 @@ void testApp::setup(){
     ofSetFrameRate(30);
     
     // TODO add gui for configuring nodes
-	ofSetLogLevel(OF_LOG_ERROR);
+	ofSetLogLevel(OF_LOG_NOTICE);
     oscReceiver.setup(7020);
     
     // syphon input
@@ -330,7 +330,6 @@ void Client::setGui() {
     gui->setVisible(false);
     
 }
-
 
 
 void Client::guiEvent(ofxUIEventArgs &e) {

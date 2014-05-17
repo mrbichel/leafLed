@@ -25,10 +25,8 @@ struct Client {
     void setup();
     void setGui();
     void update(string method);
-    
     void newId();
     void setId();
-    
     void updateGui();
     
     ofxUICanvas * gui;
@@ -52,11 +50,8 @@ struct Client {
     bool connected = false;
     bool enabled = false;
     bool test = false;
-    
     bool testBlink = false;
-    
     int long lastCallback = 0;
-    
     bool setRemove = false;
     int long lastCmdTime = 0;
 
@@ -97,26 +92,21 @@ class testApp : public ofBaseApp{
     string updateMethod = "packed";
     Client* handshakeClient(string hostname, int clientId);
     
-    
     int selectedClientIndex;
     Client * selectedClient;
     
     bool testSelected;
     
-    ofxUICanvas *gui;
-    
-    ofxUITabBar *guiTabBar;
-    
+    ofxUICanvas * gui;
+    ofxUITabBar * guiTabBar;
     ofxUITextInput * scaleheight;
     ofxUITextInput * scalewidth;
-    
     //ofxUIScrollableCanvas *clientsGui;
     
 	void guiEvent(ofxUIEventArgs &e);
     
 	ofxOscSender oscBroadcast;
     ofxOscReceiver oscReceiver;
-	
 	ofxXmlSettings xml;
     
     vector<Client *> clients;
@@ -138,7 +128,6 @@ class testApp : public ofBaseApp{
     bool monitorOutput;
     bool connect;
     bool viewInfo;
-    
     //bool testBlink;
     
     bool listenForNewClients = true;
