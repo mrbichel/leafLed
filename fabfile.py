@@ -11,21 +11,20 @@ env.roledefs = {
     'leader': ['pi@leaf18.local', ],
 
     'all': [
-        'pi@leaf26.local',
-        'pi@leaf1.local',
+        'pi@leaf21.local',
+        'pi@leaf22.local',
+        'pi@leaf29.local',
         'pi@leaf10.local',
-        'pi@leaf3.local',
-        'pi@leaf18.local',
-        'pi@leaf7.local',
-        'pi@leaf11.local',
-        'pi@leaf8.local',
-    ],
-
-    'old': [
-        'pi@leaf23.local',
-        'pi@leaf30.local',
+        'pi@leaf12.local',
+        'pi@leaf14.local',
+        'pi@leaf15.local',
+        'pi@leaf16.local',
         'pi@leaf17.local',
-    ]
+        'pi@leaf18.local',
+        'pi@leaf3.local',
+        'pi@leaf5.local',
+
+    ],
 
 }
 
@@ -46,6 +45,11 @@ def upgrade_system():
 def test_run():
     start()
 
+@roles('all')
+def deploy_reset_all():
+    deploy()
+    resetSettings();
+
 #@roles('all')
 #def update_src_all():    
 #   with cd(code_dir):  
@@ -55,7 +59,21 @@ def test_run():
 #with lcd('../../addons/'):
 #    with cd(addons_dir):
 #        put('ofxLPD8806/src/*', 'ofxLPD8806/src/')
-            
+ 
+@roles('all')
+def resetSettingsAll():
+    resetSettings()
+
+def resetSettings():
+    with settings(warn_only=True):
+        run('sudo killall -r LedClient')
+        with cd(code_dir):  
+            with cd("bin/data"):
+                run("rm -fv settings.xml")
+
+        run('sudo reboot')
+
+
 @roles('leader')
 def update_addons():
     with lcd('../../addons/'):

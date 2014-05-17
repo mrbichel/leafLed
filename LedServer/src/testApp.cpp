@@ -171,7 +171,9 @@ void Client::setId() {
         osc->sendMessage(msetId);
     }
     
-    delete gui;
+    if(gui == NULL) {
+        delete gui;
+    }
     setGui();
 }
 
@@ -229,6 +231,15 @@ Client*  testApp::handshakeClient(string hostname, int _clientId) {
         clients.push_back(c);
     }
     
+    if(c->hostname != hostname) {
+        c->hostname = hostname;
+        
+        change = true;
+        if(exists) { delete c->gui;
+            c->setGui();
+        }
+    }
+    
     if(!c->connected) {
         if(autoEnable) c->enabled = true;
         c->osc->setup(c->hostname, c->port);
@@ -243,14 +254,7 @@ Client*  testApp::handshakeClient(string hostname, int _clientId) {
         c->clientId = _clientId;
     }
     
-    if(c->hostname != hostname) {
-        c->hostname = hostname;
-        
-        change = true;
-        if(exists) { delete c->gui;
-            c->setGui();
-        }
-    }
+
     
     if (!exists) c->setGui();
     
