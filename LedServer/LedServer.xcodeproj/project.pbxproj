@@ -58,10 +58,6 @@
 		0430448018FD685D00806302 /* ofxUIWidget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0430445018FD685D00806302 /* ofxUIWidget.cpp */; };
 		0430448118FD685D00806302 /* ofxUIWidgetWithLabel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0430445318FD685D00806302 /* ofxUIWidgetWithLabel.cpp */; };
 		0546d1a38e13bd319cc9755b5ca7e1a0 /* OscReceivedElements.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9bf3aa0d4faa89d0f8a0e545403162be /* OscReceivedElements.cpp */; };
-		1B24457E1712842300F71705 /* ofxAnimatable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1B2445721712842300F71705 /* ofxAnimatable.cpp */; };
-		1B24457F1712842300F71705 /* ofxAnimatableFloat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1B2445741712842300F71705 /* ofxAnimatableFloat.cpp */; };
-		1B2445801712842300F71705 /* ofxAnimatableOfColor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1B2445761712842300F71705 /* ofxAnimatableOfColor.cpp */; };
-		1B2445811712842300F71705 /* ofxAnimatableOfPoint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1B2445781712842300F71705 /* ofxAnimatableOfPoint.cpp */; };
 		28090deb5109115003e8f1c540f04092 /* UdpSocketWin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5928aa323f5c2690b06c837d8d036f55 /* UdpSocketWin.cpp */; };
 		510cafe035e576a4e1502d52c11243bb /* UdpSocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = e6def695b88ba5faaceaa93785a12fd9 /* UdpSocket.cpp */; };
 		5864ad82e20f15536d054ea319473de3 /* ofxOscMessage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = df49d76c45d5db505a234880104e4dc7 /* ofxOscMessage.cpp */; };
@@ -242,14 +238,6 @@
 		0430445318FD685D00806302 /* ofxUIWidgetWithLabel.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ofxUIWidgetWithLabel.cpp; sourceTree = "<group>"; };
 		0430445418FD685D00806302 /* ofxUIWidgetWithLabel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxUIWidgetWithLabel.h; sourceTree = "<group>"; };
 		0430445518FD685D00806302 /* ofxUIWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxUIWrapper.h; sourceTree = "<group>"; };
-		1B2445721712842300F71705 /* ofxAnimatable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxAnimatable.cpp; sourceTree = "<group>"; };
-		1B2445731712842300F71705 /* ofxAnimatable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxAnimatable.h; sourceTree = "<group>"; };
-		1B2445741712842300F71705 /* ofxAnimatableFloat.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxAnimatableFloat.cpp; sourceTree = "<group>"; };
-		1B2445751712842300F71705 /* ofxAnimatableFloat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxAnimatableFloat.h; sourceTree = "<group>"; };
-		1B2445761712842300F71705 /* ofxAnimatableOfColor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxAnimatableOfColor.cpp; sourceTree = "<group>"; };
-		1B2445771712842300F71705 /* ofxAnimatableOfColor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxAnimatableOfColor.h; sourceTree = "<group>"; };
-		1B2445781712842300F71705 /* ofxAnimatableOfPoint.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxAnimatableOfPoint.cpp; sourceTree = "<group>"; };
-		1B2445791712842300F71705 /* ofxAnimatableOfPoint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxAnimatableOfPoint.h; sourceTree = "<group>"; };
 		20f35afadaf0068b067e713fa3152568 /* OscReceivedElements.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = OscReceivedElements.h; path = ../../../addons/ofxOsc/libs/oscpack/src/osc/OscReceivedElements.h; sourceTree = SOURCE_ROOT; };
 		23640f57df6c4bb6bfc5da4c2199c7dd /* PacketListener.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = PacketListener.h; path = ../../../addons/ofxOsc/libs/oscpack/src/ip/PacketListener.h; sourceTree = SOURCE_ROOT; };
 		2a5b1fad3f30c8065c396acbb72e5d95 /* NetworkingUtilsWin.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 30; name = NetworkingUtilsWin.cpp; path = ../../../addons/ofxOsc/libs/oscpack/src/ip/win32/NetworkingUtilsWin.cpp; sourceTree = SOURCE_ROOT; };
@@ -517,30 +505,6 @@
 			path = ../../../addons/ofxUI/src;
 			sourceTree = "<group>";
 		};
-		1B24455C1712842200F71705 /* ofxAnimatable */ = {
-			isa = PBXGroup;
-			children = (
-				1B2445711712842300F71705 /* src */,
-			);
-			name = ofxAnimatable;
-			path = ../../../addons/ofxAnimatable;
-			sourceTree = "<group>";
-		};
-		1B2445711712842300F71705 /* src */ = {
-			isa = PBXGroup;
-			children = (
-				1B2445721712842300F71705 /* ofxAnimatable.cpp */,
-				1B2445731712842300F71705 /* ofxAnimatable.h */,
-				1B2445741712842300F71705 /* ofxAnimatableFloat.cpp */,
-				1B2445751712842300F71705 /* ofxAnimatableFloat.h */,
-				1B2445761712842300F71705 /* ofxAnimatableOfColor.cpp */,
-				1B2445771712842300F71705 /* ofxAnimatableOfColor.h */,
-				1B2445781712842300F71705 /* ofxAnimatableOfPoint.cpp */,
-				1B2445791712842300F71705 /* ofxAnimatableOfPoint.h */,
-			);
-			path = src;
-			sourceTree = "<group>";
-		};
 		1f4fb5c423662b96adfdcc0badec1cb0 /* ofxXmlSettings */ = {
 			isa = PBXGroup;
 			children = (
@@ -619,7 +583,6 @@
 			children = (
 				043043F618FD685D00806302 /* ofxUI */,
 				04000BFB18083C8E00C33C5E /* ofxSyphon */,
-				1B24455C1712842200F71705 /* ofxAnimatable */,
 				e6053ab7fec63d5f83825b880ce53c41 /* ofxOsc */,
 				1f4fb5c423662b96adfdcc0badec1cb0 /* ofxXmlSettings */,
 			);
@@ -916,15 +879,11 @@
 				0430445E18FD685D00806302 /* ofxUIDropDownList.cpp in Sources */,
 				0430447D18FD685D00806302 /* ofxUIToggleMatrix.cpp in Sources */,
 				5a4349e9754d6fa14c0f2a3a1abc30b6 /* tinyxmlparser.cpp in Sources */,
-				1B24457E1712842300F71705 /* ofxAnimatable.cpp in Sources */,
 				04000C3618083C8F00C33C5E /* ofxSyphonServer.mm in Sources */,
 				0430445718FD685D00806302 /* ofxUI2DPad.cpp in Sources */,
 				0430447018FD685D00806302 /* ofxUIRangeSlider.cpp in Sources */,
-				1B24457F1712842300F71705 /* ofxAnimatableFloat.cpp in Sources */,
-				1B2445801712842300F71705 /* ofxAnimatableOfColor.cpp in Sources */,
 				04000C3718083C8F00C33C5E /* ofxSyphonServerDirectory.mm in Sources */,
 				0430446A18FD685D00806302 /* ofxUIMinimalSlider.cpp in Sources */,
-				1B2445811712842300F71705 /* ofxAnimatableOfPoint.cpp in Sources */,
 				0430446118FD685D00806302 /* ofxUIFPSSlider.cpp in Sources */,
 				0430447718FD685D00806302 /* ofxUISpectrum.cpp in Sources */,
 				04000C3518083C8F00C33C5E /* ofxSyphonClient.mm in Sources */,
