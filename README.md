@@ -6,6 +6,9 @@ The application handles simple mapping as well.
 Developed by [Johan Bichel Lindegaard](http://johan.cc) for [Obscura](http://obscura.dk) 
 
 
+![LeafLed Server and Client interface screenshot](https://cloud.githubusercontent.com/assets/38772/3007794/8f73adf6-de9e-11e3-954a-7d802e5490f9.png)
+
+
 Dependencies
 ------------
 ofxOsc
