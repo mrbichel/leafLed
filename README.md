@@ -50,7 +50,7 @@ Hardware
 The client units are build around a raspberry pi and a network switch.
 
 
-Licence
+License
 -------
 The code in this repository is available under the [MIT License](https://secure.wikimedia.org/wikipedia/en/wiki/Mit_license).
 
